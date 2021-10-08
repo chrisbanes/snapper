@@ -33,25 +33,18 @@ jobs:
       #- name: Decrypt secrets
       #  run: release/signing-setup.sh ${{ secrets.ENCRYPT_KEY }}
 
-      - name: Generate cache key
-        run: ./checksum.sh checksum.txt
-
-      - uses: actions/cache@v2
+      - uses: burrunan/gradle-cache-action@v1
+        name: Build
         with:
-          path: |
-            ~/.gradle/caches/modules-*
-            ~/.gradle/caches/jars-*
-            ~/.gradle/caches/build-cache-*
-          key: gradle-${{ hashFiles('checksum.txt') }}
-
-      - name: Build
-        run: |
-          ./gradlew --scan --stacktrace \
-              spotlessCheck \
-              assemble \
-              metalavaCheckCompatibility \
-              testDebug \
-              lintDebug
+          job-id: linux
+          gradle-dependencies-cache-key: |
+            gradle/libs.versions.toml
+          arguments: |
+            spotlessCheck
+            assemble
+            metalavaCheckCompatibility
+            testDebug
+            lintDebug
 
       - name: Upload test results
         if: always()
@@ -95,16 +88,11 @@ jobs:
       #- name: Decrypt secrets
       #  run: release/signing-setup.sh ${{ secrets.ENCRYPT_KEY }}
 
-      - name: Generate cache key
-        run: ./checksum.sh checksum.txt
-
-      - uses: actions/cache@v2
+      - uses: burrunan/gradle-cache-action@v1
         with:
-          path: |
-            ~/.gradle/caches/modules-*
-            ~/.gradle/caches/jars-*
-            ~/.gradle/caches/build-cache-*
-          key: gradle-${{ hashFiles('checksum.txt') }}
+          job-id: mac
+          gradle-dependencies-cache-key: |
+            gradle/libs.versions.toml
 
       # Determine what emulator image to use. We run all API 29+ emulators using
       # the google_apis image
