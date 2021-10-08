@@ -25,7 +25,7 @@ jobs:
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
-      - name: set up JDK
+      - name: Setup JDK
         uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -37,6 +37,7 @@ jobs:
         name: Build
         with:
           job-id: linux
+          concurrent: false # true makes the logs unreadable
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: |
@@ -80,7 +81,7 @@ jobs:
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
-      - name: set up JDK
+      - name: Setup JDK
         uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -91,6 +92,7 @@ jobs:
       - uses: burrunan/gradle-cache-action@v1
         with:
           job-id: mac
+          concurrent: false # true makes the logs unreadable
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
 
@@ -150,7 +152,7 @@ jobs:
   #     - name: Copy CI gradle.properties
   #       run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
-  #     - name: set up JDK
+  #     - name: Setup JDK
   #       uses: actions/setup-java@v1
   #       with:
   #         java-version: 11
