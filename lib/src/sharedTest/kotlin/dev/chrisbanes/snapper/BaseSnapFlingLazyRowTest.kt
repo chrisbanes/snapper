@@ -81,7 +81,9 @@ abstract class BaseSnapFlingLazyRowTest(
                         horizontalArrangement = Arrangement.spacedBy(itemSpacingDp.dp),
                         reverseLayout = reverseLayout,
                         contentPadding = contentPadding,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .testTag("layout"),
                     ) {
                         items(itemCount) { index ->
                             Box(
