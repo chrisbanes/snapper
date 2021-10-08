@@ -93,21 +93,6 @@ subprojects {
         systemProperty "robolectric.logging", "stdout"
     }
 
-    // Read in the signing.properties file if it is exists
-    def signingPropsFile = rootProject.file('release/signing.properties')
-    if (signingPropsFile.exists()) {
-        def localProperties = new Properties()
-        signingPropsFile.withInputStream { is -> localProperties.load(is) }
-        localProperties.each { prop ->
-            if (prop.key == "signing.secretKeyRingFile") {
-                // If this is the key ring, treat it as a relative path
-                project.ext.set(prop.key, rootProject.file(prop.value).absolutePath)
-            } else {
-                project.ext.set(prop.key, prop.value)
-            }
-        }
-    }
-
     // If we have a POM Artifact ID, we should generate API files
     if (project.hasProperty('POM_ARTIFACT_ID')) {
         apply plugin: 'me.tylerbwong.gradle.metalava'
