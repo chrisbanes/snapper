@@ -87,42 +87,42 @@ abstract class SnapFlingBehaviorTest(
         )
 
         // Now swipe towards start, from page 0 to page 1 and assert the layout
-        rule.onNodeWithTag("0").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(minIndex = 1, offset = 0)
 
         // Repeat for 1 -> 2
-        rule.onNodeWithTag("1").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(minIndex = 2, offset = 0)
 
         // Repeat for 2 -> 3
-        rule.onNodeWithTag("2").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(index = 3, offset = 0)
 
         // Swipe past the last item. We shouldn't move
-        rule.onNodeWithTag("3").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(index = 3, offset = 0)
 
         // Swipe back from 3 -> 2
-        rule.onNodeWithTag("3").swipeAcrossCenter(MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(maxIndex = 2, offset = 0)
 
         // Swipe back from 2 -> 1
-        rule.onNodeWithTag("2").swipeAcrossCenter(MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(maxIndex = 1, offset = 0)
 
         // Swipe back from 1 -> 0
-        rule.onNodeWithTag("1").swipeAcrossCenter(MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(index = 0, offset = 0)
 
         // Swipe past the first item. We shouldn't move
-        rule.onNodeWithTag("0").swipeAcrossCenter(MediumSwipeDistance)
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
         lazyListState.assertCurrentItem(index = 0, offset = 0)
     }
