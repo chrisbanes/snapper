@@ -1,0 +1,37 @@
+// Signature format: 4.0
+package dev.chrisbanes.snapper {
+
+  @kotlin.RequiresOptIn(message="Snapper is experimental. The API may be changed in the future.") @kotlin.annotation.Retention(kotlin.annotation.AnnotationRetention) public @interface ExperimentalSnapFlingApi {
+  }
+
+  @dev.chrisbanes.snapper.ExperimentalSnapFlingApi public final class SnapFlingBehavior implements androidx.compose.foundation.gestures.FlingBehavior {
+    ctor public SnapFlingBehavior(androidx.compose.foundation.lazy.LazyListState lazyListState, androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, optional androidx.compose.animation.core.AnimationSpec<java.lang.Float> springAnimationSpec, optional kotlin.jvm.functions.Function2<? super androidx.compose.foundation.lazy.LazyListLayoutInfo,? super androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> snapOffsetForItem, optional kotlin.jvm.functions.Function1<? super androidx.compose.foundation.lazy.LazyListLayoutInfo,java.lang.Integer> maximumFlingDistance, optional @Px int endContentPadding);
+    method public Integer? getAnimationTarget();
+    method public suspend Object? performFling(androidx.compose.foundation.gestures.ScrollScope, float initialVelocity, kotlin.coroutines.Continuation<? super java.lang.Float> p);
+    property public final Integer? animationTarget;
+  }
+
+  @dev.chrisbanes.snapper.ExperimentalSnapFlingApi public final class SnapFlingBehaviorDefaults {
+    method public kotlin.jvm.functions.Function1<androidx.compose.foundation.lazy.LazyListLayoutInfo,java.lang.Integer> getMaximumFlingDistance();
+    method public androidx.compose.animation.core.AnimationSpec<java.lang.Float> getSpringAnimationSpec();
+    property public final kotlin.jvm.functions.Function1<androidx.compose.foundation.lazy.LazyListLayoutInfo,java.lang.Integer> MaximumFlingDistance;
+    property public final androidx.compose.animation.core.AnimationSpec<java.lang.Float> SpringAnimationSpec;
+    field public static final dev.chrisbanes.snapper.SnapFlingBehaviorDefaults INSTANCE;
+  }
+
+  public final class SnapFlingBehaviorKt {
+    method @androidx.compose.runtime.Composable @dev.chrisbanes.snapper.ExperimentalSnapFlingApi public static dev.chrisbanes.snapper.SnapFlingBehavior rememberSnapFlingBehavior(androidx.compose.foundation.lazy.LazyListState lazyListState, optional androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, optional androidx.compose.animation.core.AnimationSpec<java.lang.Float> springAnimationSpec, optional kotlin.jvm.functions.Function2<? super androidx.compose.foundation.lazy.LazyListLayoutInfo,? super androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> snapOffsetForItem, optional kotlin.jvm.functions.Function1<? super androidx.compose.foundation.lazy.LazyListLayoutInfo,java.lang.Integer> maximumFlingDistance, optional @Px int endContentPadding);
+  }
+
+  public final class SnapOffsets {
+    method public kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> getCenter();
+    method public kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> getEnd();
+    method public kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> getStart();
+    property public final kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> Center;
+    property public final kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> End;
+    property public final kotlin.jvm.functions.Function2<androidx.compose.foundation.lazy.LazyListLayoutInfo,androidx.compose.foundation.lazy.LazyListItemInfo,java.lang.Integer> Start;
+    field public static final dev.chrisbanes.snapper.SnapOffsets INSTANCE;
+  }
+
+}
+
