@@ -31,11 +31,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
-import androidx.compose.foundation.lazy.LazyListItemInfo
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,8 +41,6 @@ import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.truncate
 
 private const val DebugLog = false
@@ -70,7 +65,7 @@ object SnapperFlingBehaviorDefaults {
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior], which does not limit
      * the fling distance.
      */
-    val MaximumFlingDistance: (LazyListLayoutInfo) -> Int = { Int.MAX_VALUE }
+    val MaximumFlingDistance: (SnapFlingLayout) -> Int = { Int.MAX_VALUE }
 }
 
 /**
@@ -92,8 +87,8 @@ fun rememberSnapperFlingBehavior(
     lazyListState: LazyListState,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapOffsetForItem: (layoutInfo: LazyListLayoutInfo, itemInfo: LazyListItemInfo) -> Int = SnapOffsets.Center,
-    maximumFlingDistance: (LazyListLayoutInfo) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+    snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int = SnapOffsets.Center,
+    maximumFlingDistance: (SnapFlingLayout) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     @Px endContentPadding: Int = 0,
 ): SnapperFlingBehavior = remember(
     lazyListState,
@@ -103,10 +98,9 @@ fun rememberSnapperFlingBehavior(
     maximumFlingDistance,
 ) {
     SnapperFlingBehavior(
-        lazyListState = lazyListState,
+        layout = LazyListSnapFlingLayout(lazyListState, endContentPadding, snapOffsetForItem),
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
-        snapOffsetForItem = snapOffsetForItem,
         maximumFlingDistance = maximumFlingDistance,
     )
 }.apply {
@@ -123,38 +117,23 @@ object SnapOffsets {
      * Snap offset which results in the start edge of the item, snapping to the start scrolling
      * edge of the lazy list.
      */
-    val Start: (LazyListLayoutInfo, LazyListItemInfo) -> Int = { _, _ -> 0 }
+    val Start: (SnapFlingLayout, Int) -> Int = { _, _ -> 0 }
 
     /**
      * Snap offset which results in the item snapping in the center of the scrolling viewport
      * of the lazy list.
      */
-    val Center: (LazyListLayoutInfo, LazyListItemInfo) -> Int = { layoutInfo, itemInfo ->
-        (layoutInfo.layoutSize - itemInfo.size) / 2
+    val Center: (SnapFlingLayout, Int) -> Int = { layout, index ->
+        (layout.layoutSize - layout.sizeForItem(index)) / 2
     }
 
     /**
      * Snap offset which results in the end edge of the item, snapping to the end scrolling
      * edge of the lazy list.
      */
-    val End: (LazyListLayoutInfo, LazyListItemInfo) -> Int = { layoutInfo, itemInfo ->
-        layoutInfo.layoutSize - itemInfo.size
+    val End: (SnapFlingLayout, Int) -> Int = { layout, index ->
+        layout.layoutSize - layout.sizeForItem(index)
     }
-
-    /**
-     * Ideally this would exist on [LazyListLayoutInfo] but it doesn't right now.
-     * Raised https://issuetracker.google.com/issues/200920410 to track.
-     */
-    private val LazyListLayoutInfo.layoutSize: Int
-        get() = if (this is LazyListLayoutInfoWithContentPadding) {
-            // If the LazyListLayoutInfo is actually a LazyListLayoutInfoWithContentPadding,
-            // use it's layoutSize
-            this.layoutSize
-        } else {
-            // This shouldn't happen through the usage of SnapFlingBehavior, but otherwise
-            // we fallback to the end offset. That value contains the end content padding though.
-            viewportEndOffset
-        }
 }
 
 /**
@@ -176,11 +155,11 @@ object SnapOffsets {
  */
 @ExperimentalSnapperApi
 class SnapperFlingBehavior(
-    private val lazyListState: LazyListState,
+    private val layout: SnapFlingLayout,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    private val snapOffsetForItem: (LazyListLayoutInfo, LazyListItemInfo) -> Int = SnapOffsets.Center,
-    private val maximumFlingDistance: LazyListLayoutInfo.() -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+    private val snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int = SnapOffsets.Center,
+    private val maximumFlingDistance: (SnapFlingLayout) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     @Px endContentPadding: Int = 0,
 ) : FlingBehavior {
     /**
@@ -189,34 +168,26 @@ class SnapperFlingBehavior(
     var animationTarget: Int? by mutableStateOf(null)
         private set
 
-    private val layoutInfo: LazyListLayoutInfo by derivedStateOf {
-        LazyListLayoutInfoWithContentPadding(
-            layoutInfo = lazyListState.layoutInfo,
-            endContentPadding = this.endContentPadding
-        )
-    }
-
     internal var endContentPadding: Int by mutableStateOf(endContentPadding)
 
     override suspend fun ScrollScope.performFling(
         initialVelocity: Float
     ): Float {
-        val itemInfo = currentItemInfo ?: return initialVelocity
-
         Napier.d(message = { "performFling. initialVelocity: $initialVelocity" })
 
-        return if (decayAnimationSpec.canDecayBeyondCurrentItem(itemInfo, initialVelocity)) {
+        val currentIndex = layout.currentItem
+        return if (decayAnimationSpec.canDecayBeyondCurrentItem(initialVelocity)) {
             // If the decay fling can scroll past the current item, fling with decay
             performDecayFling(
-                initialItem = itemInfo,
-                targetIndex = determineTargetIndexForDecay(initialVelocity, itemInfo),
+                initialIndex = currentIndex,
+                targetIndex = determineTargetIndexForDecay(currentIndex, initialVelocity),
                 initialVelocity = initialVelocity,
             )
         } else {
             // Otherwise we 'spring' to current/next item
             performSpringFling(
-                initialItem = itemInfo,
-                targetIndex = determineTargetIndexForSpring(initialVelocity, itemInfo),
+                initialIndex = currentIndex,
+                targetIndex = determineTargetIndexForSpring(currentIndex, initialVelocity),
                 initialVelocity = initialVelocity,
             )
         }
@@ -237,20 +208,20 @@ class SnapperFlingBehavior(
      * scrolling past [targetIndex], which can result in an abrupt stop.
      */
     private suspend fun ScrollScope.performDecayFling(
-        initialItem: LazyListItemInfo,
+        initialIndex: Int,
         targetIndex: Int,
         initialVelocity: Float,
         flingThenSpring: Boolean = true,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialItem.index == targetIndex &&
-            initialItem.offset == snapOffsetForItem(layoutInfo, initialItem)
+        if (initialIndex == targetIndex &&
+            layout.offsetForItem(targetIndex) == snapOffsetForItem(layout, targetIndex)
         ) {
             Napier.d(
                 message = {
                     "Skipping decay: already at target. " +
                         "vel:$initialVelocity, " +
-                        "current item: ${initialItem.log()}, " +
+                        "current: $initialIndex, " +
                         "target: $targetIndex"
                 }
             )
@@ -261,7 +232,7 @@ class SnapperFlingBehavior(
             message = {
                 "Performing decay fling. " +
                     "vel:$initialVelocity, " +
-                    "current item: ${currentItemInfo?.log()}, " +
+                    "current item: $initialIndex, " +
                     "target: $targetIndex"
             }
         )
@@ -270,7 +241,7 @@ class SnapperFlingBehavior(
         var lastValue = 0f
 
         // We can only fling-then-spring if we're flinging >= 2 items...
-        val canSpringThenFling = flingThenSpring && abs(targetIndex - initialItem.index) >= 2
+        val canSpringThenFling = flingThenSpring && abs(targetIndex - initialIndex) >= 2
         var needSpringAfter = false
 
         try {
@@ -292,15 +263,14 @@ class SnapperFlingBehavior(
                     cancelAnimation()
                 }
 
-                val currentItem = currentItemInfo
-                if (isRunning && canSpringThenFling && currentItem != null) {
+                if (isRunning && canSpringThenFling) {
                     // If we're still running and fling-then-spring is enabled, check to see
                     // if we're at the 1 item width away (in the relevant direction). If we are,
                     // set the spring-after flag and cancel the current decay
-                    if (initialVelocity > 0 && currentItem.index == targetIndex - 1) {
+                    if (initialVelocity > 0 && layout.currentItem == targetIndex - 1) {
                         needSpringAfter = true
                         cancelAnimation()
-                    } else if (initialVelocity < 0 && currentItem.index == targetIndex) {
+                    } else if (initialVelocity < 0 && layout.currentItem == targetIndex) {
                         needSpringAfter = true
                         cancelAnimation()
                     }
@@ -322,40 +292,40 @@ class SnapperFlingBehavior(
             }
         )
 
-        val currentItem = currentItemInfo
-        if (currentItem != null && needSpringAfter) {
+        if (needSpringAfter) {
             // The needSpringAfter flag is enabled, so start a spring to the target using the
             // remaining velocity
-            return performSpringFling(currentItem, targetIndex, velocityLeft)
+            return performSpringFling(layout.currentItem, targetIndex, velocityLeft)
         }
 
         return velocityLeft
     }
 
     private fun determineTargetIndexForDecay(
+        currentIndex: Int,
         initialVelocity: Float,
-        currentItem: LazyListItemInfo,
     ): Int {
-        val distancePerChild = lazyListState.layoutInfo.distancePerChild
-        if (distancePerChild <= 0) {
+        val distancePerItem = layout.distancePerItem()
+        if (distancePerItem <= 0) {
             // If we don't have a valid distance, return the current item
-            return currentItem.index
+            return currentIndex
         }
 
-        val maximumFlingDistance = maximumFlingDistance(lazyListState.layoutInfo)
+        val maximumFlingDistance = maximumFlingDistance(layout)
         require(maximumFlingDistance >= 0) {
             "Values returned from maximumFlingDistance should be >= 0"
         }
         val flingDistance = decayAnimationSpec.calculateTargetValue(0f, initialVelocity)
             .coerceIn(-maximumFlingDistance.toFloat(), maximumFlingDistance.toFloat())
-        val itemSpacing = lazyListState.layoutInfo.itemSpacing
-        val snapOffset = snapOffsetForItem(layoutInfo, currentItem)
+        val itemSpacing = layout.calculateItemSpacing()
+        val snapOffset = snapOffsetForItem(layout, currentIndex)
 
         val distanceToNextSnap = if (initialVelocity > 0) {
             // forwards, toward index + 1
-            currentItem.size + currentItem.offset + itemSpacing - snapOffset
+            layout.sizeForItem(currentIndex) + layout.offsetForItem(currentIndex) +
+                itemSpacing - snapOffset
         } else {
-            currentItem.offset - snapOffset
+            layout.offsetForItem(currentIndex) - snapOffset
         }
 
         /**
@@ -366,7 +336,7 @@ class SnapperFlingBehavior(
          * from the fling distance. This is then applied as an extra index delta below.
          */
         val indexDelta = truncate(
-            (flingDistance - distanceToNextSnap) / distancePerChild
+            (flingDistance - distanceToNextSnap) / distancePerItem
         ).let {
             // As we removed the `distanceToNextSnap` from the fling distance, we need to calculate
             // whether we need to take that into account...
@@ -384,21 +354,21 @@ class SnapperFlingBehavior(
         Napier.d(
             message = {
                 "determineTargetIndexForDecay. " +
-                    "currentItem: ${currentItem.log()}, " +
-                    "distancePerChild: $distancePerChild, " +
+                    "currentIndex: $currentIndex, " +
+                    "distancePerChild: $distancePerItem, " +
                     "maximumFlingDistance: $maximumFlingDistance, " +
                     "flingDistance: $flingDistance, " +
                     "indexDelta: $indexDelta"
             }
         )
 
-        return (currentItem.index + indexDelta).coerceIn(0, lazyListState.layoutInfo.lastIndex)
+        return (currentIndex + indexDelta).coerceIn(0, layout.itemCount - 1)
     }
 
     @Suppress("unused_parameter")
     private fun determineTargetIndexForSpring(
+        currentIndex: Int,
         initialVelocity: Float,
-        currentItemInfo: LazyListItemInfo,
     ): Int {
         // We can't trust the velocity right now. We're waiting on
         // https://android-review.googlesource.com/c/platform/frameworks/support/+/1826965/,
@@ -415,29 +385,31 @@ class SnapperFlingBehavior(
         // }
 
         // Otherwise we look at the current offset, and spring to whichever is closer
-        val snapOffset = snapOffsetForItem(layoutInfo, currentItemInfo)
+        val snapOffset = snapOffsetForItem(layout, currentIndex)
+        val currentOffset = layout.offsetForItem(currentIndex)
+        val currentSize = layout.sizeForItem(currentIndex)
         return when {
-            currentItemInfo.offset < snapOffset - (currentItemInfo.size / 2) -> {
-                (currentItemInfo.index + 1).coerceIn(0, lazyListState.layoutInfo.lastIndex)
+            currentOffset < snapOffset - (currentSize / 2) -> {
+                (currentIndex + 1).coerceIn(0, layout.itemCount - 1)
             }
-            else -> currentItemInfo.index
+            else -> currentIndex
         }
     }
 
     private suspend fun ScrollScope.performSpringFling(
-        initialItem: LazyListItemInfo,
+        initialIndex: Int,
         targetIndex: Int,
         initialVelocity: Float = 0f,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialItem.index == targetIndex &&
-            initialItem.offset == snapOffsetForItem(layoutInfo, initialItem)
+        if (initialIndex == targetIndex &&
+            layout.offsetForItem(targetIndex) == snapOffsetForItem(layout, targetIndex)
         ) {
             Napier.d(
                 message = {
                     "Skipping spring: already at target. " +
                         "vel:$initialVelocity, " +
-                        "current item: ${initialItem.log()}, " +
+                        "initial item: $initialIndex, " +
                         "target: $targetIndex"
                 }
             )
@@ -448,12 +420,12 @@ class SnapperFlingBehavior(
             message = {
                 "Performing spring. " +
                     "vel:$initialVelocity, " +
-                    "current item: ${initialItem.log()}, " +
+                    "initial item: $initialIndex, " +
                     "target: $targetIndex"
             }
         )
 
-        val itemSpacing = lazyListState.layoutInfo.itemSpacing
+        val itemSpacing = layout.calculateItemSpacing()
         var velocityLeft = initialVelocity
         var lastValue = 0f
 
@@ -466,8 +438,8 @@ class SnapperFlingBehavior(
                 initialVelocity = initialVelocity,
             ).animateTo(
                 targetValue = when {
-                    targetIndex > initialItem.index -> initialItem.size + itemSpacing
-                    else -> -(initialItem.size + itemSpacing)
+                    targetIndex > initialIndex -> layout.sizeForItem(initialIndex) + itemSpacing
+                    else -> -(layout.sizeForItem(initialIndex) + itemSpacing)
                 }.toFloat(),
                 animationSpec = springAnimationSpec,
             ) {
@@ -505,20 +477,12 @@ class SnapperFlingBehavior(
         targetIndex: Int,
         scrollBy: (pixels: Float) -> Float,
     ): Boolean {
-        val current = currentItemInfo
-        if (current == null) {
-            cancelAnimation()
-            return true
-        }
+        val currentIndex = layout.currentItem
 
-        Napier.d(
-            message = {
-                "scroll tick. vel:$velocity, current item: ${current.log()}"
-            }
-        )
+        Napier.d(message = { "scroll tick. vel:$velocity, current item: $currentIndex" })
 
         // Calculate the 'snap back'. If the returned value is 0, we don't need to do anything.
-        val snapBackAmount = calculateSnapBack(initialVelocity, current, targetIndex)
+        val snapBackAmount = calculateSnapBack(initialVelocity, currentIndex, targetIndex)
 
         if (snapBackAmount != 0) {
             // If we've scrolled to/past the item, stop the animation. We may also need to
@@ -527,7 +491,7 @@ class SnapperFlingBehavior(
                 message = {
                     "Scrolled past item. " +
                         "vel:$initialVelocity, " +
-                        "current item: ${current.log()}, " +
+                        "current item: $currentIndex, " +
                         "target:$targetIndex"
                 }
             )
@@ -538,29 +502,24 @@ class SnapperFlingBehavior(
         return false
     }
 
-    private val currentItemInfo: LazyListItemInfo?
-        get() = lazyListState.layoutInfo.let { layoutInfo ->
-            layoutInfo.visibleItemsInfo.lastOrNull { itemInfo ->
-                itemInfo.offset <= snapOffsetForItem(layoutInfo, itemInfo)
-            }
-        }
-
     private fun DecayAnimationSpec<Float>.canDecayBeyondCurrentItem(
-        currentItem: LazyListItemInfo,
         initialVelocity: Float,
     ): Boolean {
         // If we don't have a velocity, return false
         if (initialVelocity.absoluteValue < 0.5f) return false
 
+        val currentIndex = layout.currentItem
         val flingDistance = calculateTargetValue(0f, initialVelocity)
-        val snapOffset = snapOffsetForItem(layoutInfo, currentItem)
-        val itemSpacing = lazyListState.layoutInfo.itemSpacing
+        val snapOffset = snapOffsetForItem(layout, currentIndex)
+        val currentItemOffset = layout.offsetForItem(currentIndex)
+        val itemSpacing = layout.calculateItemSpacing()
 
         Napier.d(
             message = {
                 "canDecayBeyondCurrentItem. " +
                     "initialVelocity: $initialVelocity, " +
-                    "currentItem: ${currentItem.log()}, " +
+                    "currentItemIndex: $currentIndex, " +
+                    "currentItemOffset: $currentItemOffset, " +
                     "flingDistance: $flingDistance, " +
                     "snapOffset: $snapOffset, " +
                     "itemSpacing: $itemSpacing"
@@ -569,10 +528,13 @@ class SnapperFlingBehavior(
 
         return if (initialVelocity < 0) {
             // backwards, towards 0
-            flingDistance <= currentItem.offset - snapOffset
+            flingDistance <= currentItemOffset - snapOffset
         } else {
             // forwards, toward index + 1
-            flingDistance >= currentItem.size + currentItem.offset + itemSpacing - snapOffset
+            flingDistance >= layout.sizeForItem(currentIndex) +
+                currentItemOffset +
+                itemSpacing -
+                snapOffset
         }
     }
 
@@ -582,42 +544,42 @@ class SnapperFlingBehavior(
      */
     private fun calculateSnapBack(
         initialVelocity: Float,
-        currentItem: LazyListItemInfo,
+        currentIndex: Int,
         targetIndex: Int,
-    ): Int = when {
-        // forwards
-        initialVelocity > 0 && currentItem.index >= targetIndex -> {
-            val target = lazyListState.layoutInfo.visibleItemsInfo.first { it.index == targetIndex }
-            val targetScrollOffset = snapOffsetForItem(layoutInfo, target)
-            when {
-                // We've scrolled past the target index
-                currentItem.index > targetIndex -> {
-                    target.offset - targetScrollOffset
+    ): Int {
+        val currentOffset = layout.offsetForItem(currentIndex)
+        return when {
+            // forwards
+            initialVelocity > 0 && currentIndex >= targetIndex -> {
+                // val target = lazyListState.layoutInfo.visibleItemsInfo.first { it.index == targetIndex }
+                val targetScrollOffset = snapOffsetForItem(layout, targetIndex)
+                val targetOffset = layout.offsetForItem(targetIndex)
+                when {
+                    // We've scrolled past the target index
+                    currentIndex > targetIndex -> targetOffset - targetScrollOffset
+                    // The current item is the target, but we've scrolled past it
+                    currentIndex == targetIndex && currentOffset < targetScrollOffset -> {
+                        targetOffset - targetScrollOffset
+                    }
+                    else -> 0
                 }
-                // The current item is the target, but we've scrolled past it
-                currentItem.index == targetIndex && currentItem.offset < targetScrollOffset -> {
-                    target.offset - targetScrollOffset
-                }
-                else -> 0
             }
-        }
-        initialVelocity <= 0 && currentItem.index <= targetIndex -> {
-            // backwards
-            val target = lazyListState.layoutInfo.visibleItemsInfo.first { it.index == targetIndex }
-            val targetScrollOffset = snapOffsetForItem(layoutInfo, target)
-            when {
-                // We've scrolled past the target index
-                currentItem.index < targetIndex -> {
-                    target.offset - targetScrollOffset
+            initialVelocity <= 0 && currentIndex <= targetIndex -> {
+                // backwards
+                val targetScrollOffset = snapOffsetForItem(layout, targetIndex)
+                val targetOffset = layout.offsetForItem(targetIndex)
+                when {
+                    // We've scrolled past the target index
+                    currentIndex < targetIndex -> targetOffset - targetScrollOffset
+                    // The current item is the target, but we've scrolled past it
+                    currentIndex == targetIndex && currentOffset > targetScrollOffset -> {
+                        targetOffset - targetScrollOffset
+                    }
+                    else -> 0
                 }
-                // The current item is the target, but we've scrolled past it
-                currentItem.index == targetIndex && currentItem.offset > targetScrollOffset -> {
-                    target.offset - targetScrollOffset
-                }
-                else -> 0
             }
+            else -> 0
         }
-        else -> 0
     }
 
     private companion object {
@@ -628,61 +590,3 @@ class SnapperFlingBehavior(
         }
     }
 }
-
-internal inline fun LazyListItemInfo.log(): String = "[i:$index,o:$offset,s:$size]"
-
-private val LazyListLayoutInfo.lastIndex: Int
-    get() = (totalItemsCount - 1).coerceAtLeast(0)
-
-/**
- * Delegate class around [LazyListLayoutInfo], which allows us to pass through the
- * [endContentPadding] to receiving functions. See [SnapOffsets] for an example.
- *
- * Raised https://issuetracker.google.com/issues/200920410 to track this addition
- * to Compose Foundation.
- */
-private class LazyListLayoutInfoWithContentPadding(
-    layoutInfo: LazyListLayoutInfo,
-    @Px private val endContentPadding: Int = 0,
-) : LazyListLayoutInfo by layoutInfo {
-    val layoutSize: Int
-        get() = viewportEndOffset + viewportStartOffset - endContentPadding
-}
-
-/**
- * This attempts to calculate the item spacing for the layout, by looking at the distance
- * between the visible items. If there's only 1 visible item available, it returns 0.
- */
-private val LazyListLayoutInfo.itemSpacing: Int
-    get() = if (visibleItemsInfo.size >= 2) {
-        val first = visibleItemsInfo[0]
-        val second = visibleItemsInfo[1]
-        second.offset - (first.size + first.offset)
-    } else 0
-
-/**
- * Computes an average pixel value to pass a single child.
- *
- * Returns a negative value if it cannot be calculated.
- *
- * @return A float value that is the average number of pixels needed to scroll by one view in
- * the relevant direction.
- */
-private val LazyListLayoutInfo.distancePerChild: Float
-    get() {
-        if (visibleItemsInfo.isEmpty()) return -1f
-
-        val minPosView = visibleItemsInfo.minByOrNull { it.offset } ?: return -1f
-        val maxPosView = visibleItemsInfo.maxByOrNull { it.offset + it.size } ?: return -1f
-
-        val start = min(minPosView.offset, maxPosView.offset)
-        val end = max(minPosView.offset + minPosView.size, maxPosView.offset + maxPosView.size)
-
-        // We add an extra `itemSpacing` onto the calculated total distance. This ensures that
-        // the calculated mean contains an item spacing for each visible item
-        // (not just spacing between items)
-        return when (val distance = end - start) {
-            0 -> -1f // If we don't have a distance, return -1
-            else -> (distance + itemSpacing) / visibleItemsInfo.size.toFloat()
-        }
-    }
