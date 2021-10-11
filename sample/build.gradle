@@ -50,7 +50,10 @@ android {
 dependencies {
     debugImplementation libs.compose.ui.tooling
 
+    implementation project(':lib')
+
     implementation libs.compose.material.material
     implementation libs.androidx.core
     implementation libs.androidx.activity.compose
+    implementation libs.coil
 }
