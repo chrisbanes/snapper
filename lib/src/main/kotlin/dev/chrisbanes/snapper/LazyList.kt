@@ -17,6 +17,7 @@
 package dev.chrisbanes.snapper
 
 import androidx.compose.foundation.lazy.LazyListItemInfo
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import kotlin.math.max
 import kotlin.math.min
@@ -30,16 +31,13 @@ interface SnapFlingLayout {
     val layoutSize: Int
     val itemCount: Int
 
-    val currentItem: Int
+    val currentItemIndex: Int
 
     fun sizeForItem(index: Int): Int
     fun offsetForItem(index: Int): Int
 
-    /**
-     * This attempts to calculate the item spacing for the layout, by looking at the distance
-     * between the visible items. If there's only 1 visible item available, it returns 0.
-     */
-    fun calculateItemSpacing(): Int
+    fun distanceToPreviousSnapPoint(): Int
+    fun distanceToNextSnapPoint(): Int
 
     /**
      * Computes an average pixel value to pass a single child.
@@ -68,12 +66,28 @@ internal class LazyListSnapFlingLayout(
     override val itemCount: Int
         get() = lazyListState.layoutInfo.totalItemsCount
 
-    override val currentItem: Int
+    override val currentItemIndex: Int
+        get() = currentItem.index
+
+    private val currentItem: LazyListItemInfo
         get() = lazyListState.layoutInfo.let { layoutInfo ->
             layoutInfo.visibleItemsInfo.last { itemInfo ->
                 itemInfo.offset <= snapOffsetForItem(this, itemInfo.index)
             }
-        }.index
+        }
+
+    override fun distanceToNextSnapPoint(): Int {
+        val current = currentItem
+        return current.size +
+                current.offset +
+                calculateItemSpacing() -
+                snapOffsetForItem(this, current.index)
+    }
+
+    override fun distanceToPreviousSnapPoint(): Int {
+        val current = currentItem
+        return current.offset - snapOffsetForItem(this, current.index)
+    }
 
     override fun sizeForItem(index: Int): Int {
         return lazyListState.layoutInfo.visibleItemsInfo.firstOrNull {
@@ -105,7 +119,11 @@ internal class LazyListSnapFlingLayout(
         }
     }
 
-    override fun calculateItemSpacing(): Int = with(lazyListState.layoutInfo) {
+    /**
+     * This attempts to calculate the item spacing for the layout, by looking at the distance
+     * between the visible items. If there's only 1 visible item available, it returns 0.
+     */
+    private fun calculateItemSpacing(): Int = with(lazyListState.layoutInfo) {
         if (visibleItemsInfo.size >= 2) {
             val first = visibleItemsInfo[0]
             val second = visibleItemsInfo[1]
