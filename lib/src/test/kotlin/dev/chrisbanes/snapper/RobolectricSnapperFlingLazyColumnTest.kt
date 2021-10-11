@@ -17,57 +17,54 @@
 package dev.chrisbanes.snapper
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.internal.combineWithParameters
 import dev.chrisbanes.internal.parameterizedParams
 import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
+import org.robolectric.ParameterizedRobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
- * Version of [BaseSnapFlingLazyRowTest] which is designed to be run on device/emulators.
+ * Version of [BaseSnapperFlingLazyColumnTest] which is designed to be run on Robolectric.
  */
-@RunWith(Parameterized::class)
-class InstrumentedSnapFlingLazyRowTest(
+@Config(qualifiers = "w360dp-h640dp-xhdpi")
+@RunWith(ParameterizedRobolectricTestRunner::class)
+class RobolectricSnapperFlingLazyColumnTest(
     maxScrollDistanceDp: Float,
     contentPadding: PaddingValues,
     itemSpacingDp: Int,
-    layoutDirection: LayoutDirection,
     reverseLayout: Boolean,
-) : BaseSnapFlingLazyRowTest(
+) : BaseSnapperFlingLazyColumnTest(
     maxScrollDistanceDp,
     contentPadding,
     itemSpacingDp,
-    layoutDirection,
     reverseLayout,
 ) {
     companion object {
         @JvmStatic
-        @Parameterized.Parameters(
+        @ParameterizedRobolectricTestRunner.Parameters(
             name = "maxScrollDistanceDp={0}," +
                 "contentPadding={1}," +
                 "itemSpacing={2}," +
-                "layoutDirection={3}," +
-                "reverseLayout={4}"
+                "reverseLayout={3}"
         )
         fun data() = parameterizedParams()
             // maxScrollDistanceDp
             .combineWithParameters(
                 // We add 4dp on to cater for itemSpacing
                 1 * (ItemSize.value + 4),
+                2 * (ItemSize.value + 4),
                 4 * (ItemSize.value + 4),
             )
             // contentPadding
             .combineWithParameters(
-                PaddingValues(end = 32.dp), // Alignment.Start
-                PaddingValues(horizontal = 32.dp), // Alignment.Center
-                PaddingValues(start = 32.dp), // Alignment.End
+                PaddingValues(bottom = 32.dp), // Alignment.Top
+                PaddingValues(vertical = 32.dp), // Alignment.Center
+                PaddingValues(top = 32.dp), // Alignment.Bottom
             )
-            // itemSpacing
+            // itemSpacingDp
             .combineWithParameters(0, 4)
-            // layoutDirection
-            .combineWithParameters(LayoutDirection.Ltr, LayoutDirection.Rtl)
             // reverseLayout
-            .combineWithParameters(false)
+            .combineWithParameters(true, false)
     }
 }

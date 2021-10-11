@@ -52,22 +52,22 @@ private const val DebugLog = false
 
 @RequiresOptIn(message = "Snapper is experimental. The API may be changed in the future.")
 @Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalSnapFlingApi
+annotation class ExperimentalSnapperApi
 
 /**
- * Default values used for [SnapFlingBehavior] & [rememberSnapFlingBehavior].
+ * Default values used for [SnapperFlingBehavior] & [rememberSnapperFlingBehavior].
  */
-@ExperimentalSnapFlingApi
-object SnapFlingBehaviorDefaults {
+@ExperimentalSnapperApi
+object SnapperFlingBehaviorDefaults {
     /**
      * [AnimationSpec] used as the default value for the `snapAnimationSpec` parameter on
-     * [rememberSnapFlingBehavior] and [SnapFlingBehavior].
+     * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
      */
     val SpringAnimationSpec: AnimationSpec<Float> = spring(stiffness = 400f)
 
     /**
      * The default implementation for the `maximumFlingDistance` parameter of
-     * [rememberSnapFlingBehavior] and [SnapFlingBehavior], which does not limit
+     * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior], which does not limit
      * the fling distance.
      */
     val MaximumFlingDistance: (LazyListLayoutInfo) -> Int = { Int.MAX_VALUE }
@@ -86,23 +86,23 @@ object SnapFlingBehaviorDefaults {
  * @param endContentPadding The amount of content padding on the end edge of the lazy list
  * in pixels (end/bottom depending on the scrolling direction).
  */
-@ExperimentalSnapFlingApi
+@ExperimentalSnapperApi
 @Composable
-fun rememberSnapFlingBehavior(
+fun rememberSnapperFlingBehavior(
     lazyListState: LazyListState,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
-    springAnimationSpec: AnimationSpec<Float> = SnapFlingBehaviorDefaults.SpringAnimationSpec,
+    springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
     snapOffsetForItem: (layoutInfo: LazyListLayoutInfo, itemInfo: LazyListItemInfo) -> Int = SnapOffsets.Center,
-    maximumFlingDistance: (LazyListLayoutInfo) -> Int = SnapFlingBehaviorDefaults.MaximumFlingDistance,
+    maximumFlingDistance: (LazyListLayoutInfo) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     @Px endContentPadding: Int = 0,
-): SnapFlingBehavior = remember(
+): SnapperFlingBehavior = remember(
     lazyListState,
     decayAnimationSpec,
     springAnimationSpec,
     snapOffsetForItem,
     maximumFlingDistance,
 ) {
-    SnapFlingBehavior(
+    SnapperFlingBehavior(
         lazyListState = lazyListState,
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
@@ -115,7 +115,7 @@ fun rememberSnapFlingBehavior(
 
 /**
  * Contains a number of values which can be used for the `snapOffsetForItem` parameter on
- * [rememberSnapFlingBehavior] and [SnapFlingBehavior].
+ * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
  */
 @Suppress("unused") // public vals which aren't used in the project
 object SnapOffsets {
@@ -159,10 +159,10 @@ object SnapOffsets {
 
 /**
  * A snapping [FlingBehavior] for [LazyListState]. Typically this would be created
- * via [rememberSnapFlingBehavior].
+ * via [rememberSnapperFlingBehavior].
  *
  * Note: the default parameter value for [decayAnimationSpec] is different to the value used in
- * [rememberSnapFlingBehavior], due to not being able to access composable functions.
+ * [rememberSnapperFlingBehavior], due to not being able to access composable functions.
  *
  * @param lazyListState The [LazyListState] to update.
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
@@ -174,13 +174,13 @@ object SnapOffsets {
  * @param endContentPadding The amount of content padding on the end edge of the lazy list
  * in pixels (end/bottom depending on the scrolling direction).
  */
-@ExperimentalSnapFlingApi
-class SnapFlingBehavior(
+@ExperimentalSnapperApi
+class SnapperFlingBehavior(
     private val lazyListState: LazyListState,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
-    private val springAnimationSpec: AnimationSpec<Float> = SnapFlingBehaviorDefaults.SpringAnimationSpec,
+    private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
     private val snapOffsetForItem: (LazyListLayoutInfo, LazyListItemInfo) -> Int = SnapOffsets.Center,
-    private val maximumFlingDistance: LazyListLayoutInfo.() -> Int = SnapFlingBehaviorDefaults.MaximumFlingDistance,
+    private val maximumFlingDistance: LazyListLayoutInfo.() -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     @Px endContentPadding: Int = 0,
 ) : FlingBehavior {
     /**

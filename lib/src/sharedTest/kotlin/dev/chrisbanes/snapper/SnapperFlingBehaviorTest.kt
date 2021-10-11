@@ -39,8 +39,8 @@ private val SlowVelocity = 100.dp
 
 internal val ItemSize = 200.dp
 
-@OptIn(ExperimentalSnapFlingApi::class) // Pager is currently experimental
-abstract class SnapFlingBehaviorTest(
+@OptIn(ExperimentalSnapperApi::class) // Pager is currently experimental
+abstract class SnapperFlingBehaviorTest(
     private val maxScrollDistanceDp: Float,
 ) {
     @get:Rule
@@ -281,7 +281,7 @@ abstract class SnapFlingBehaviorTest(
     private fun setTestContent(
         count: Int,
         lazyListState: LazyListState = LazyListState(),
-        flingBehavior: SnapFlingBehavior = createSnapFlingBehavior(lazyListState),
+        flingBehavior: SnapperFlingBehavior = createSnapFlingBehavior(lazyListState),
     ) {
         setTestContent(
             flingBehavior = flingBehavior,
@@ -291,14 +291,14 @@ abstract class SnapFlingBehaviorTest(
     }
 
     protected abstract fun setTestContent(
-        flingBehavior: SnapFlingBehavior,
+        flingBehavior: SnapperFlingBehavior,
         count: () -> Int,
         lazyListState: LazyListState = LazyListState(),
     )
 
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState
-    ): SnapFlingBehavior = SnapFlingBehavior(
+    ): SnapperFlingBehavior = SnapperFlingBehavior(
         lazyListState = lazyListState,
         decayAnimationSpec = exponentialDecay(),
         snapOffsetForItem = SnapOffsets.Start,

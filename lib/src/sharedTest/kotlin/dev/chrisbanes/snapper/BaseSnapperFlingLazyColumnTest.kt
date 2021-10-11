@@ -22,8 +22,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,72 +31,63 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.internal.randomColor
 import dev.chrisbanes.internal.swipeAcrossCenterWithVelocity
 
 /**
- * Contains [SnapFlingBehavior] tests using [LazyRow]. This class is extended
+ * Contains [SnapperFlingBehavior] tests using [LazyColumn]. This class is extended
  * in both the `androidTest` and `test` source sets for setup of the relevant
  * test runner.
  */
-@OptIn(ExperimentalSnapFlingApi::class) // SnapFlingBehavior is currently experimental
-abstract class BaseSnapFlingLazyRowTest(
+@OptIn(ExperimentalSnapperApi::class) // SnapFlingBehavior is currently experimental
+abstract class BaseSnapperFlingLazyColumnTest(
     private val maxScrollDistanceDp: Float,
     private val contentPadding: PaddingValues,
     // We don't use the Dp type due to https://youtrack.jetbrains.com/issue/KT-35523
     private val itemSpacingDp: Int,
-    private val layoutDirection: LayoutDirection,
     private val reverseLayout: Boolean,
-) : SnapFlingBehaviorTest(maxScrollDistanceDp) {
-
-    /**
-     * Returns the expected resolved layout direction for pages
-     */
-    private val laidOutRtl: Boolean
-        get() = if (layoutDirection == LayoutDirection.Rtl) !reverseLayout else reverseLayout
+) : SnapperFlingBehaviorTest(maxScrollDistanceDp) {
 
     override fun SemanticsNodeInteraction.swipeAcrossCenter(
         distancePercentage: Float,
         velocityPerSec: Dp,
     ): SemanticsNodeInteraction = swipeAcrossCenterWithVelocity(
-        distancePercentageX = if (laidOutRtl) -distancePercentage else distancePercentage,
+        distancePercentageY = if (reverseLayout) -distancePercentage else distancePercentage,
         velocityPerSec = velocityPerSec,
     )
 
     override fun setTestContent(
-        flingBehavior: SnapFlingBehavior,
+        flingBehavior: SnapperFlingBehavior,
         count: () -> Int,
         lazyListState: LazyListState,
     ) {
         rule.setContent {
-            ProvideLayoutDirection(layoutDirection) {
-                applierScope = rememberCoroutineScope()
-                val itemCount = count()
+            applierScope = rememberCoroutineScope()
+            val itemCount = count()
 
-                Box {
-                    LazyRow(
-                        state = lazyListState,
-                        flingBehavior = flingBehavior,
-                        horizontalArrangement = Arrangement.spacedBy(itemSpacingDp.dp),
-                        reverseLayout = reverseLayout,
-                        contentPadding = contentPadding,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .testTag("layout"),
-                    ) {
-                        items(itemCount) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .size(ItemSize)
-                                    .background(randomColor())
-                                    .testTag(index.toString())
-                            ) {
-                                BasicText(
-                                    text = index.toString(),
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
+            Box {
+                LazyColumn(
+                    state = lazyListState,
+                    flingBehavior = flingBehavior,
+                    verticalArrangement = Arrangement.spacedBy(itemSpacingDp.dp),
+                    reverseLayout = reverseLayout,
+                    contentPadding = contentPadding,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .testTag("layout"),
+                ) {
+                    items(itemCount) { index ->
+                        Box(
+                            modifier = Modifier
+                                .size(ItemSize)
+                                .background(randomColor())
+                                .testTag(index.toString())
+                        ) {
+                            BasicText(
+                                text = index.toString(),
+                                modifier = Modifier.align(Alignment.Center)
+                            )
                         }
                     }
                 }

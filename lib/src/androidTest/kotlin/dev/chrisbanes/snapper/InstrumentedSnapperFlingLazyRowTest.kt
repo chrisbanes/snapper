@@ -17,6 +17,7 @@
 package dev.chrisbanes.snapper
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.internal.combineWithParameters
 import dev.chrisbanes.internal.parameterizedParams
@@ -24,30 +25,30 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Version of [BaseSnapFlingLazyColumnTest] which is designed to be run on device/emulators.
+ * Version of [BaseSnapperFlingLazyRowTest] which is designed to be run on device/emulators.
  */
 @RunWith(Parameterized::class)
-class InstrumentedSnapFlingLazyColumnTest(
+class InstrumentedSnapperFlingLazyRowTest(
     maxScrollDistanceDp: Float,
     contentPadding: PaddingValues,
     itemSpacingDp: Int,
+    layoutDirection: LayoutDirection,
     reverseLayout: Boolean,
-) : BaseSnapFlingLazyColumnTest(
+) : BaseSnapperFlingLazyRowTest(
     maxScrollDistanceDp,
     contentPadding,
     itemSpacingDp,
+    layoutDirection,
     reverseLayout,
 ) {
     companion object {
-        /**
-         * On device we only test a subset of the combined parameters.
-         */
         @JvmStatic
         @Parameterized.Parameters(
             name = "maxScrollDistanceDp={0}," +
                 "contentPadding={1}," +
                 "itemSpacing={2}," +
-                "reverseLayout={3}"
+                "layoutDirection={3}," +
+                "reverseLayout={4}"
         )
         fun data() = parameterizedParams()
             // maxScrollDistanceDp
@@ -58,12 +59,14 @@ class InstrumentedSnapFlingLazyColumnTest(
             )
             // contentPadding
             .combineWithParameters(
-                PaddingValues(bottom = 32.dp), // Alignment.Top
-                PaddingValues(vertical = 32.dp), // Alignment.Center
-                PaddingValues(top = 32.dp), // Alignment.Bottom
+                PaddingValues(end = 32.dp), // Alignment.Start
+                PaddingValues(horizontal = 32.dp), // Alignment.Center
+                PaddingValues(start = 32.dp), // Alignment.End
             )
-            // itemSpacingDp
+            // itemSpacing
             .combineWithParameters(0, 4)
+            // layoutDirection
+            .combineWithParameters(LayoutDirection.Ltr, LayoutDirection.Rtl)
             // reverseLayout
             .combineWithParameters(false)
     }
