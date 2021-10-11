@@ -26,17 +26,17 @@ import org.robolectric.ParameterizedRobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * Version of [BaseSnapFlingLazyRowTest] which is designed to be run on Robolectric.
+ * Version of [BaseSnapperFlingLazyRowTest] which is designed to be run on Robolectric.
  */
 @Config(qualifiers = "w360dp-h640dp-xhdpi")
 @RunWith(ParameterizedRobolectricTestRunner::class)
-class RobolectricSnapFlingLazyRowTest(
+class RobolectricSnapperFlingLazyRowTest(
     maxScrollDistanceDp: Float,
     contentPadding: PaddingValues,
     itemSpacingDp: Int,
     layoutDirection: LayoutDirection,
     reverseLayout: Boolean,
-) : BaseSnapFlingLazyRowTest(
+) : BaseSnapperFlingLazyRowTest(
     maxScrollDistanceDp,
     contentPadding,
     itemSpacingDp,
