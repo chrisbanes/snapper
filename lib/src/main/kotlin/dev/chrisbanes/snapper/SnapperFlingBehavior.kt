@@ -99,7 +99,11 @@ fun rememberSnapperFlingBehavior(
     endContentPadding,
 ) {
     SnapperFlingBehavior(
-        layout = LazyListSnapFlingLayout(lazyListState, endContentPadding, snapOffsetForItem),
+        layout = LazyListSnapFlingLayout(
+            lazyListState = lazyListState,
+            endContentPadding = endContentPadding,
+            snapOffsetForItem = snapOffsetForItem,
+        ),
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
         maximumFlingDistance = maximumFlingDistance,
@@ -145,8 +149,6 @@ object SnapOffsets {
  * @param lazyListState The [LazyListState] to update.
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
- * @param snapOffsetForItem Block which returns which offset the given item should 'snap' to.
- * See [SnapOffsets] for provided values.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be >= 0.
  */
@@ -155,7 +157,6 @@ class SnapperFlingBehavior(
     private val layout: SnapFlingLayout,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    private val snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int = SnapOffsets.Center,
     private val maximumFlingDistance: (SnapFlingLayout) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ) : FlingBehavior {
     /**
@@ -208,7 +209,7 @@ class SnapperFlingBehavior(
         flingThenSpring: Boolean = true,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialIndex == targetIndex && layout.distanceToPreviousSnapPoint() == 0) {
+        if (initialIndex == targetIndex && layout.distanceToCurrentItemSnap() == 0) {
             Napier.d(
                 message = {
                     "Skipping decay: already at target. " +
@@ -312,9 +313,9 @@ class SnapperFlingBehavior(
 
         val distanceToNextSnap = if (initialVelocity > 0) {
             // forwards, toward index + 1
-            layout.distanceToNextSnapPoint()
+            layout.distanceToNextItemSnap()
         } else {
-            layout.distanceToPreviousSnapPoint()
+            layout.distanceToCurrentItemSnap()
         }
 
         /**
@@ -374,8 +375,8 @@ class SnapperFlingBehavior(
         // }
 
         // Otherwise we look at the current offset, and spring to whichever is closer
-        val distanceToNextSnap = layout.distanceToNextSnapPoint()
-        val distanceToPreviousSnap = layout.distanceToPreviousSnapPoint()
+        val distanceToNextSnap = layout.distanceToNextItemSnap()
+        val distanceToPreviousSnap = layout.distanceToCurrentItemSnap()
 
         return if (distanceToNextSnap < -distanceToPreviousSnap) {
             (currentIndex + 1).coerceIn(0, layout.itemCount - 1)
@@ -390,7 +391,7 @@ class SnapperFlingBehavior(
         initialVelocity: Float = 0f,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialIndex == targetIndex && layout.distanceToPreviousSnapPoint() == 0) {
+        if (initialIndex == targetIndex && layout.distanceToCurrentItemSnap() == 0) {
             Napier.d(
                 message = {
                     "Skipping spring: already at target. " +
@@ -423,8 +424,8 @@ class SnapperFlingBehavior(
                 initialVelocity = initialVelocity,
             ).animateTo(
                 targetValue = when {
-                    targetIndex > initialIndex -> layout.distanceToNextSnapPoint()
-                    else -> layout.distanceToPreviousSnapPoint()
+                    targetIndex > initialIndex -> layout.distanceToNextItemSnap()
+                    else -> layout.distanceToCurrentItemSnap()
                 }.toFloat(),
                 animationSpec = springAnimationSpec,
             ) {
@@ -498,17 +499,17 @@ class SnapperFlingBehavior(
         Napier.d(
             message = {
                 "canDecayBeyondCurrentItem. " +
-                        "initialVelocity: $initialVelocity, " +
-                        "flingDistance: $flingDistance"
+                    "initialVelocity: $initialVelocity, " +
+                    "flingDistance: $flingDistance"
             }
         )
 
         return if (initialVelocity < 0) {
             // backwards, towards 0
-            flingDistance <= layout.distanceToPreviousSnapPoint()
+            flingDistance <= layout.distanceToCurrentItemSnap()
         } else {
             // forwards, toward index + 1
-            flingDistance >= layout.distanceToNextSnapPoint()
+            flingDistance >= layout.distanceToNextItemSnap()
         }
     }
 
@@ -520,40 +521,15 @@ class SnapperFlingBehavior(
         initialVelocity: Float,
         currentIndex: Int,
         targetIndex: Int,
-    ): Int {
-        val currentOffset = layout.offsetForItem(currentIndex)
-        return when {
-            // forwards
-            initialVelocity > 0 && currentIndex >= targetIndex -> {
-                // val target = lazyListState.layoutInfo.visibleItemsInfo.first { it.index == targetIndex }
-                val targetScrollOffset = snapOffsetForItem(layout, targetIndex)
-                val targetOffset = layout.offsetForItem(targetIndex)
-                when {
-                    // We've scrolled past the target index
-                    currentIndex > targetIndex -> targetOffset - targetScrollOffset
-                    // The current item is the target, but we've scrolled past it
-                    currentIndex == targetIndex && currentOffset < targetScrollOffset -> {
-                        targetOffset - targetScrollOffset
-                    }
-                    else -> 0
-                }
-            }
-            initialVelocity <= 0 && currentIndex <= targetIndex -> {
-                // backwards
-                val targetScrollOffset = snapOffsetForItem(layout, targetIndex)
-                val targetOffset = layout.offsetForItem(targetIndex)
-                when {
-                    // We've scrolled past the target index
-                    currentIndex < targetIndex -> targetOffset - targetScrollOffset
-                    // The current item is the target, but we've scrolled past it
-                    currentIndex == targetIndex && currentOffset > targetScrollOffset -> {
-                        targetOffset - targetScrollOffset
-                    }
-                    else -> 0
-                }
-            }
-            else -> 0
+    ): Int = when {
+        // forwards
+        initialVelocity > 0 && currentIndex == targetIndex + 1 -> {
+            layout.distanceToCurrentItemSnap()
         }
+        initialVelocity <= 0 && currentIndex == targetIndex - 1 -> {
+            layout.distanceToNextItemSnap()
+        }
+        else -> 0
     }
 
     private companion object {

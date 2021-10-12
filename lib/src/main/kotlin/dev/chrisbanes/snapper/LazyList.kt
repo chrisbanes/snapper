@@ -17,7 +17,6 @@
 package dev.chrisbanes.snapper
 
 import androidx.compose.foundation.lazy.LazyListItemInfo
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import kotlin.math.max
 import kotlin.math.min
@@ -36,8 +35,8 @@ interface SnapFlingLayout {
     fun sizeForItem(index: Int): Int
     fun offsetForItem(index: Int): Int
 
-    fun distanceToPreviousSnapPoint(): Int
-    fun distanceToNextSnapPoint(): Int
+    fun distanceToCurrentItemSnap(): Int
+    fun distanceToNextItemSnap(): Int
 
     /**
      * Computes an average pixel value to pass a single child.
@@ -76,15 +75,15 @@ internal class LazyListSnapFlingLayout(
             }
         }
 
-    override fun distanceToNextSnapPoint(): Int {
+    override fun distanceToNextItemSnap(): Int {
         val current = currentItem
         return current.size +
-                current.offset +
-                calculateItemSpacing() -
-                snapOffsetForItem(this, current.index)
+            current.offset +
+            calculateItemSpacing() -
+            snapOffsetForItem(this, current.index)
     }
 
-    override fun distanceToPreviousSnapPoint(): Int {
+    override fun distanceToCurrentItemSnap(): Int {
         val current = currentItem
         return current.offset - snapOffsetForItem(this, current.index)
     }
@@ -131,5 +130,3 @@ internal class LazyListSnapFlingLayout(
         } else 0
     }
 }
-
-internal fun LazyListItemInfo.log(): String = "[i:$index,o:$offset,s:$size]"
