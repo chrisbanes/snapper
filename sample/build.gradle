@@ -64,10 +64,9 @@ android {
 }
 
 dependencies {
-    debugImplementation libs.compose.ui.tooling
-
     implementation project(':lib')
 
+    implementation libs.compose.ui.tooling // TODO: Try and move this to debug only
     implementation libs.compose.material.material
     implementation libs.androidx.core
     implementation libs.androidx.activity.compose
