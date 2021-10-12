@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.gradle.enterprise' version '3.5'
-}
+package dev.chrisbanes.snapper.sample.ui.theme
 
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-    }
-}
+import androidx.compose.ui.graphics.Color
 
-include ':lib'
-include ':internal-testutils'
-include ':sample'
-
-// Enable Gradle's version catalog support
-// https://docs.gradle.org/current/userguide/platforms.html
-enableFeaturePreview("VERSION_CATALOGS")
+val Purple200 = Color(0xFFBB86FC)
+val Purple500 = Color(0xFF6200EE)
+val Purple700 = Color(0xFF3700B3)
+val Teal200 = Color(0xFF03DAC5)
