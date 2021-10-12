@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.gradle.enterprise' version '3.5'
+package dev.chrisbanes.snapper.sample
+
+import androidx.compose.runtime.Composable
+
+@OptIn(ExperimentalStdlibApi::class)
+val Samples = buildList {
+    addAll(LazyRowSamples)
+    addAll(LazyColumnSamples)
 }
 
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-    }
-}
-
-include ':lib'
-include ':internal-testutils'
-include ':sample'
-
-// Enable Gradle's version catalog support
-// https://docs.gradle.org/current/userguide/platforms.html
-enableFeaturePreview("VERSION_CATALOGS")
+data class Sample(
+    val title: String,
+    val content: @Composable () -> Unit,
+)
