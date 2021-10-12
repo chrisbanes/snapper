@@ -96,6 +96,7 @@ fun rememberSnapperFlingBehavior(
     springAnimationSpec,
     snapOffsetForItem,
     maximumFlingDistance,
+    endContentPadding,
 ) {
     SnapperFlingBehavior(
         layout = LazyListSnapFlingLayout(lazyListState, endContentPadding, snapOffsetForItem),
@@ -103,8 +104,6 @@ fun rememberSnapperFlingBehavior(
         springAnimationSpec = springAnimationSpec,
         maximumFlingDistance = maximumFlingDistance,
     )
-}.apply {
-    this.endContentPadding = endContentPadding
 }
 
 /**
@@ -150,8 +149,6 @@ object SnapOffsets {
  * See [SnapOffsets] for provided values.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be >= 0.
- * @param endContentPadding The amount of content padding on the end edge of the lazy list
- * in pixels (end/bottom depending on the scrolling direction).
  */
 @ExperimentalSnapperApi
 class SnapperFlingBehavior(
@@ -160,15 +157,12 @@ class SnapperFlingBehavior(
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
     private val snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int = SnapOffsets.Center,
     private val maximumFlingDistance: (SnapFlingLayout) -> Int = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
-    @Px endContentPadding: Int = 0,
 ) : FlingBehavior {
     /**
      * The target item index for any on-going animations.
      */
     var animationTarget: Int? by mutableStateOf(null)
         private set
-
-    internal var endContentPadding: Int by mutableStateOf(endContentPadding)
 
     override suspend fun ScrollScope.performFling(
         initialVelocity: Float
