@@ -1,6 +1,8 @@
+[![Maven Central](https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper)](https://search.maven.org/search?q=g:dev.chrisbanes.snapper) ![Build status](https://github.com/chrisbanes/snapper/actions/workflows/build.yml/badge.svg)
+
 ![](docs/assets/header.png)
 
-Accompanist is a library which brings snapping to the Compose scrolling layouts (currently only LazyColumn and LazyRow).
+Snapper is a library which brings snapping to the Compose scrolling layouts (currently only LazyColumn and LazyRow).
 
 Check out the website for more information: https://chrisbanes.github.io/snapper
 
