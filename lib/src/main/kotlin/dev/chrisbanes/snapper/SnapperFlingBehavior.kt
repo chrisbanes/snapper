@@ -201,6 +201,14 @@ class SnapperFlingBehavior(
     override suspend fun ScrollScope.performFling(
         initialVelocity: Float
     ): Float {
+        // If we're at the start/end of the scroll range, we don't snap and assume the user
+        // wanted to scroll here.
+        with(lazyListState.layoutInfo) {
+            if (isAtScrollStart() || isAtScrollEnd()) {
+                return initialVelocity
+            }
+        }
+
         val itemInfo = currentItemInfo ?: return initialVelocity
 
         Napier.d(message = { "performFling. initialVelocity: $initialVelocity" })
