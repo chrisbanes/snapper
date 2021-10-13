@@ -13,19 +13,21 @@
         <meta name="author" content="Chris Banes">
       
       
-      <link rel="icon" href="/snapper/assets/images/favicon.png">
+        <link rel="canonical" href="https://chribanes.github.io/snapper/using-snapshot-version/">
+      
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.2.3, mkdocs-material-7.3.3">
     
     
       
-        <title>Snapper</title>
+        <title>Using a Snapshot Version of the Library - Snapper</title>
       
     
     
-      <link rel="stylesheet" href="/snapper/assets/stylesheets/main.5143246d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.5143246d.min.css">
       
         
-        <link rel="stylesheet" href="/snapper/assets/stylesheets/palette.3f5d1f46.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.3f5d1f46.min.css">
         
           
           
@@ -61,12 +63,17 @@
     <body dir="ltr" data-md-color-scheme="" data-md-color-primary="teal" data-md-color-accent="teal">
   
     
-    <script>function __prefix(e){return new URL("/snapper/",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    <script>function __prefix(e){return new URL("..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
     
     <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
     <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
+      
+        
+        <a href="#using-a-snapshot-version-of-the-library" class="md-skip">
+          Skip to content
+        </a>
       
     </div>
     <div data-md-component="announce">
@@ -77,9 +84,9 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="/snapper/." title="Snapper" class="md-header__button md-logo" aria-label="Snapper" data-md-component="logo">
+    <a href=".." title="Snapper" class="md-header__button md-logo" aria-label="Snapper" data-md-component="logo">
       
-  <img src="/snapper/assets/croc.svg" alt="logo">
+  <img src="../assets/croc.svg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -95,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              Using a Snapshot Version of the Library
             
           </span>
         </div>
@@ -176,9 +183,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/snapper/." title="Snapper" class="md-nav__button md-logo" aria-label="Snapper" data-md-component="logo">
+    <a href=".." title="Snapper" class="md-nav__button md-logo" aria-label="Snapper" data-md-component="logo">
       
-  <img src="/snapper/assets/croc.svg" alt="logo">
+  <img src="../assets/croc.svg" alt="logo">
 
     </a>
     Snapper
@@ -207,7 +214,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/snapper/." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         Overview
       </a>
     </li>
@@ -222,7 +229,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/snapper/api/" class="md-nav__link">
+      <a href="../api/" class="md-nav__link">
         API
       </a>
     </li>
@@ -236,11 +243,88 @@
               </div>
             
             
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#using-jetpack-compose-snapshots" class="md-nav__link">
+    Using Jetpack Compose Snapshots
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
               
-  <h1>404 - Not found</h1>
+                
+                  <a href="https://github.com/chrisbanes/snapper/tree/main/docs/using-snapshot-version.md" title="Edit this page" class="md-content__button md-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
+                  </a>
+                
+                
+                <h1 id="using-a-snapshot-version-of-the-library">Using a Snapshot Version of the Library<a class="headerlink" href="#using-a-snapshot-version-of-the-library" title="Permanent link">&para;</a></h1>
+<p>If you would like to depend on the cutting edge version of the Snapper
+library, you can use the <a href="https://oss.sonatype.org/content/repositories/snapshots/dev/chrisbanes/snapper/">snapshot versions</a> that are published to
+<a href="https://central.sonatype.org/">Sonatype OSSRH</a>'s snapshot repository. These are updated on every commit to <code>main</code>.</p>
+<p>To do so:</p>
+<div class="highlight"><pre><span></span><code><span class="n">repositories</span> <span class="o">{</span>
+    <span class="c1">// ...</span>
+    <span class="n">maven</span> <span class="o">{</span> <span class="n">url</span> <span class="s1">&#39;https://oss.sonatype.org/content/repositories/snapshots&#39;</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">dependencies</span> <span class="o">{</span>
+    <span class="c1">// Check the latest SNAPSHOT version from the link above</span>
+    <span class="n">classpath</span> <span class="s1">&#39;dev.chrisbanes.snapper:snapper:XXX-SNAPSHOT&#39;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>You might see a number of different versioned snapshots. If we use an example:</p>
+<ul>
+<li><code>0.3.0-SNAPSHOT</code> is a build from the <code>main</code> branch, and depends on the latest tagged Jetpack Compose release (i.e. <a href="https://developer.android.com/jetpack/androidx/releases/compose#1.0.0-alpha03">alpha03</a>).</li>
+<li><code>0.3.0.compose-6574163-SNAPSHOT</code> is a build from the <code>snapshot</code> branch. This depends on the <a href="https://androidx.dev">SNAPSHOT build</a> of Jetpack Compose from build <code>6574163</code>. You should only use these if you are using Jetpack Compose snapshot versions (see below).</li>
+</ul>
+<h3 id="using-jetpack-compose-snapshots">Using Jetpack Compose Snapshots<a class="headerlink" href="#using-jetpack-compose-snapshots" title="Permanent link">&para;</a></h3>
+<p>If you're using <a href="https://androidx.dev"><code>SNAPSHOT</code></a> versions of the <code>androidx.compose</code> libraries, you might run into issues with the current stable release forcing an older version of those libraries.</p>
+<p>We publish snapshot versions of the library which depend on recent Jetpack Compose SNAPSHOT repositories. To find a recent build, look through the <a href="https://oss.sonatype.org/content/repositories/snapshots/dev/chrisbanes/snapper/">snapshot repository</a> for any versions in the scheme <code>x.x.x.compose-YYYY-SNAPSHOT</code> (for example: <code>0.3.0.compose-6574163-SNAPSHOT</code>). The <code>YYYY</code> in the scheme is the snapshot build being used from <a href="https://androidx.dev">AndroidX</a> (from the example: build <a href="https://androidx.dev/snapshots/builds/6574163/artifacts"><code>6574163</code></a>). You can then use it like so:</p>
+<div class="highlight"><pre><span></span><code><span class="n">repositories</span> <span class="o">{</span>
+    <span class="c1">// ...</span>
+    <span class="n">maven</span> <span class="o">{</span> <span class="n">url</span> <span class="s1">&#39;https://oss.sonatype.org/content/repositories/snapshots&#39;</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">dependencies</span> <span class="o">{</span>
+    <span class="c1">// Check the latest SNAPSHOT version from the link above</span>
+    <span class="n">classpath</span> <span class="s1">&#39;dev.chrisbanes.snapper:snapper:XXXX.compose-YYYYY-SNAPSHOT&#39;</span>
+<span class="o">}</span>
+</code></pre></div>
+<p>These builds are updated regularly, but there's no guarantee that we will create one for a given snapshot number.</p>
+<p><em>Note:</em> you might also see versions in the scheme <code>x.x.x.ui-YYYY-SNAPSHOT</code>. These are the same, just using an older suffix.</p>
+                
+              
+              
+                
+
 
               
             </article>
@@ -273,10 +357,10 @@
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "/snapper/", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "/snapper/assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../assets/javascripts/workers/search.8397ff9e.min.js", "version": null}</script>
     
     
-      <script src="/snapper/assets/javascripts/bundle.f89c2efe.min.js"></script>
+      <script src="../assets/javascripts/bundle.f89c2efe.min.js"></script>
       
     
   </body>
