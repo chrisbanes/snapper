@@ -329,7 +329,7 @@ class SnapperFlingBehavior(
             return performSpringFling(currentItem, targetIndex, velocityLeft)
         }
 
-        return velocityLeft
+        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
 
     private fun determineTargetIndexForDecay(
@@ -494,7 +494,7 @@ class SnapperFlingBehavior(
             }
         )
 
-        return velocityLeft
+        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
 
     /**
@@ -620,6 +620,20 @@ class SnapperFlingBehavior(
         else -> 0
     }
 
+    private fun consumeVelocityIfNotAtScrollEdge(velocity: Float): Float {
+        if (velocity < 0 && lazyListState.layoutInfo.isAtScrollStart()) {
+            // If there is remaining velocity towards the start and we're at the scroll start,
+            // we don't consume. This enables the overscroll effect where supported
+            return velocity
+        } else if (velocity > 0 && lazyListState.layoutInfo.isAtScrollEnd()) {
+            // If there is remaining velocity towards the end and we're at the scroll end,
+            // we don't consume. This enables the overscroll effect where supported
+            return velocity
+        }
+        // Else we return 0 to consume the remaining velocity
+        return 0f
+    }
+
     private companion object {
         init {
             if (DebugLog) {
@@ -686,3 +700,14 @@ private val LazyListLayoutInfo.distancePerChild: Float
             else -> (distance + itemSpacing) / visibleItemsInfo.size.toFloat()
         }
     }
+
+private fun LazyListLayoutInfo.isAtScrollStart(): Boolean {
+    return visibleItemsInfo.isEmpty() || visibleItemsInfo.first().offset == 0
+}
+
+private fun LazyListLayoutInfo.isAtScrollEnd(): Boolean {
+    if (visibleItemsInfo.isEmpty()) return true
+    val lastItem = visibleItemsInfo.last()
+    return lastItem.index == totalItemsCount - 1 &&
+        (lastItem.offset + lastItem.size) <= viewportEndOffset
+}
