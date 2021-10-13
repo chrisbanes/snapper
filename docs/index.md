@@ -1,6 +1,6 @@
 [![Maven Central](https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper)](https://search.maven.org/search?q=g:dev.chrisbanes.snapper)
 
-![](docs/assets/header.png)
+![](assets/header.png)
 
 Snapper is a library which brings snapping to the Compose scrolling layouts (currently only LazyColumn and LazyRow).
 
