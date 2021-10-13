@@ -291,7 +291,7 @@ class SnapperFlingBehavior(
             return performSpringFling(layout.currentItemIndex, targetIndex, velocityLeft)
         }
 
-        return velocityLeft
+        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
 
     private fun determineTargetIndexForDecay(
@@ -452,7 +452,7 @@ class SnapperFlingBehavior(
             }
         )
 
-        return velocityLeft
+        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
 
     /**
@@ -530,6 +530,20 @@ class SnapperFlingBehavior(
             layout.distanceToNextItemSnap()
         }
         else -> 0
+    }
+
+    private fun consumeVelocityIfNotAtScrollEdge(velocity: Float): Float {
+        if (velocity < 0 && layout.isAtScrollStart()) {
+            // If there is remaining velocity towards the start and we're at the scroll start,
+            // we don't consume. This enables the overscroll effect where supported
+            return velocity
+        } else if (velocity > 0 && layout.isAtScrollEnd()) {
+            // If there is remaining velocity towards the end and we're at the scroll end,
+            // we don't consume. This enables the overscroll effect where supported
+            return velocity
+        }
+        // Else we return 0 to consume the remaining velocity
+        return 0f
     }
 
     private companion object {

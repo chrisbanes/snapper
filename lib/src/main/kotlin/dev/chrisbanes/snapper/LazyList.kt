@@ -38,6 +38,9 @@ interface SnapFlingLayout {
     fun distanceToCurrentItemSnap(): Int
     fun distanceToNextItemSnap(): Int
 
+    fun isAtScrollStart(): Boolean
+    fun isAtScrollEnd(): Boolean
+
     /**
      * Computes an average pixel value to pass a single child.
      *
@@ -116,6 +119,17 @@ internal class LazyListSnapFlingLayout(
             0 -> -1f // If we don't have a distance, return -1
             else -> (distance + calculateItemSpacing()) / visibleItemsInfo.size.toFloat()
         }
+    }
+
+    override fun isAtScrollStart(): Boolean = with(lazyListState.layoutInfo) {
+        return visibleItemsInfo.isEmpty() || visibleItemsInfo.first().offset == 0
+    }
+
+    override fun isAtScrollEnd(): Boolean = with(lazyListState.layoutInfo) {
+        if (visibleItemsInfo.isEmpty()) return true
+        val lastItem = visibleItemsInfo.last()
+        return lastItem.index == totalItemsCount - 1 &&
+                (lastItem.offset + lastItem.size) <= viewportEndOffset
     }
 
     /**
