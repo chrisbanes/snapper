@@ -129,7 +129,7 @@ internal class LazyListSnapFlingLayout(
         if (visibleItemsInfo.isEmpty()) return true
         val lastItem = visibleItemsInfo.last()
         return lastItem.index == totalItemsCount - 1 &&
-                (lastItem.offset + lastItem.size) <= viewportEndOffset
+            (lastItem.offset + lastItem.size) <= viewportEndOffset
     }
 
     /**
