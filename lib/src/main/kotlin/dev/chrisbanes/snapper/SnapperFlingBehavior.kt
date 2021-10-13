@@ -214,10 +214,17 @@ class SnapperFlingBehavior(
             )
         } else {
             // Otherwise we 'spring' to current/next item
+            val targetIndex = determineTargetIndexForSpring(initialVelocity, itemInfo)
             performSpringFling(
                 initialItem = itemInfo,
-                targetIndex = determineTargetIndexForSpring(initialVelocity, itemInfo),
-                initialVelocity = initialVelocity,
+                targetIndex = targetIndex,
+                initialVelocity = when {
+                    // Only pass through the velocity if it is in the determined direction
+                    targetIndex > itemInfo.index && initialVelocity > 0 -> initialVelocity
+                    targetIndex <= itemInfo.index && initialVelocity < 0 -> initialVelocity
+                    // Otherwise start at 0 velocity
+                    else -> 0f
+                },
             )
         }
     }
@@ -297,16 +304,16 @@ class SnapperFlingBehavior(
                     // If we're still running and fling-then-spring is enabled, check to see
                     // if we're at the 1 item width away (in the relevant direction). If we are,
                     // set the spring-after flag and cancel the current decay
-                    if (initialVelocity > 0 && currentItem.index == targetIndex - 1) {
+                    if (velocity > 0 && currentItem.index == targetIndex - 1) {
                         needSpringAfter = true
                         cancelAnimation()
-                    } else if (initialVelocity < 0 && currentItem.index == targetIndex) {
+                    } else if (velocity < 0 && currentItem.index == targetIndex) {
                         needSpringAfter = true
                         cancelAnimation()
                     }
                 }
 
-                if (isRunning && isSnapBackNeeded(initialVelocity, targetIndex, ::scrollBy)) {
+                if (isRunning && performSnapBackIfNeeded(targetIndex, ::scrollBy)) {
                     // If we're still running, check to see if we need to snap-back
                     // (if we've scrolled past the target)
                     cancelAnimation()
@@ -476,7 +483,7 @@ class SnapperFlingBehavior(
                 lastValue = value
                 velocityLeft = velocity
 
-                if (isSnapBackNeeded(initialVelocity, targetIndex, ::scrollBy)) {
+                if (performSnapBackIfNeeded(targetIndex, ::scrollBy)) {
                     cancelAnimation()
                 } else if (abs(delta - consumed) > 0.5f) {
                     // If we're still running but some of the scroll was not consumed,
@@ -500,8 +507,7 @@ class SnapperFlingBehavior(
     /**
      * Returns true if we needed to perform a snap back, and the animation should be cancelled.
      */
-    private fun AnimationScope<Float, AnimationVector1D>.isSnapBackNeeded(
-        initialVelocity: Float,
+    private fun AnimationScope<Float, AnimationVector1D>.performSnapBackIfNeeded(
         targetIndex: Int,
         scrollBy: (pixels: Float) -> Float,
     ): Boolean {
@@ -513,12 +519,12 @@ class SnapperFlingBehavior(
 
         Napier.d(
             message = {
-                "scroll tick. vel:$velocity, current item: ${current.log()}"
+                "scroll tick. vel:${velocity}, current item: ${current.log()}"
             }
         )
 
         // Calculate the 'snap back'. If the returned value is 0, we don't need to do anything.
-        val snapBackAmount = calculateSnapBack(initialVelocity, current, targetIndex)
+        val snapBackAmount = calculateSnapBack(velocity, current, targetIndex)
 
         if (snapBackAmount != 0) {
             // If we've scrolled to/past the item, stop the animation. We may also need to
@@ -526,7 +532,7 @@ class SnapperFlingBehavior(
             Napier.d(
                 message = {
                     "Scrolled past item. " +
-                        "vel:$initialVelocity, " +
+                        "vel:$velocity, " +
                         "current item: ${current.log()}, " +
                         "target:$targetIndex"
                 }
@@ -601,7 +607,7 @@ class SnapperFlingBehavior(
                 else -> 0
             }
         }
-        initialVelocity <= 0 && currentItem.index <= targetIndex -> {
+        initialVelocity < 0 && currentItem.index <= targetIndex -> {
             // backwards
             val target = lazyListState.layoutInfo.visibleItemsInfo.first { it.index == targetIndex }
             val targetScrollOffset = snapOffsetForItem(layoutInfo, target)
