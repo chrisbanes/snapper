@@ -65,7 +65,7 @@ class LazyListSnapperLayoutInfo(
     override val startOffset: Int = 0
 
     override val endOffset: Int
-        get() = lazyListState.layoutInfo.viewportStartOffset - endContentPadding
+        get() = lazyListState.layoutInfo.viewportEndOffset - endContentPadding
 
     private val itemCount: Int get() = lazyListState.layoutInfo.totalItemsCount
 
