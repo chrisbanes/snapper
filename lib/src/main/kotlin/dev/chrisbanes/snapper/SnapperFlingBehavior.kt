@@ -254,7 +254,7 @@ class SnapperFlingBehavior(
                 message = {
                     "Skipping decay: already at target. " +
                         "vel:$initialVelocity, " +
-                        "current: $initialIndex, " +
+                        "current item: ${itemString(initialIndex)}, " +
                         "target: $targetIndex"
                 }
             )
@@ -265,7 +265,7 @@ class SnapperFlingBehavior(
             message = {
                 "Performing decay fling. " +
                     "vel:$initialVelocity, " +
-                    "current item: $initialIndex, " +
+                    "current item: ${itemString(initialIndex)}, " +
                     "target: $targetIndex"
             }
         )
@@ -345,7 +345,7 @@ class SnapperFlingBehavior(
                 message = {
                     "Skipping spring: already at target. " +
                         "vel:$initialVelocity, " +
-                        "initial item: $initialIndex, " +
+                        "initial item: ${itemString(initialIndex)}, " +
                         "target: $targetIndex"
                 }
             )
@@ -356,7 +356,7 @@ class SnapperFlingBehavior(
             message = {
                 "Performing spring. " +
                     "vel:$initialVelocity, " +
-                    "initial item: $initialIndex, " +
+                    "initial item: ${itemString(initialIndex)}, " +
                     "target: $targetIndex"
             }
         )
@@ -413,7 +413,13 @@ class SnapperFlingBehavior(
     ): Boolean {
         val currentIndex = layoutInfo.currentItemIndex
 
-        Napier.d(message = { "scroll tick. vel:$velocity, current item: $currentIndex" })
+        Napier.d(
+            message = {
+                "scroll tick. " +
+                    "vel:$velocity, " +
+                    "current item: ${itemString()}"
+            }
+        )
 
         // Calculate the 'snap back'. If the returned value is 0, we don't need to do anything.
         val snapBackAmount = calculateSnapBack(velocity, currentIndex, targetIndex)
@@ -425,7 +431,7 @@ class SnapperFlingBehavior(
                 message = {
                     "Scrolled past item. " +
                         "vel:$velocity, " +
-                        "current item: $currentIndex, " +
+                        "current item: ${itemString()} " +
                         "target:$targetIndex"
                 }
             )
@@ -448,7 +454,8 @@ class SnapperFlingBehavior(
             message = {
                 "canDecayBeyondCurrentItem. " +
                     "initialVelocity: $initialVelocity, " +
-                    "flingDistance: $flingDistance"
+                    "flingDistance: $flingDistance, " +
+                    "current item: ${itemString()}"
             }
         )
 
@@ -471,7 +478,7 @@ class SnapperFlingBehavior(
         targetIndex: Int,
     ): Int = when {
         // forwards
-        initialVelocity > 0 && currentIndex == targetIndex + 1 -> {
+        initialVelocity > 0 && currentIndex == targetIndex -> {
             layoutInfo.distanceToCurrentItemSnap()
         }
         initialVelocity < 0 && currentIndex == targetIndex - 1 -> {
@@ -500,5 +507,13 @@ class SnapperFlingBehavior(
                 Napier.base(DebugAntilog(defaultTag = "SnapFlingBehavior"))
             }
         }
+    }
+
+    private fun itemString(index: Int = layoutInfo.currentItemIndex): String {
+        return "[" +
+            "i:$index, " +
+            "o:${layoutInfo.itemOffset(index)}, " +
+            "s:${layoutInfo.itemSize(index)}" +
+            "]"
     }
 }

@@ -112,7 +112,7 @@ class LazyListSnapperLayoutInfo(
     override fun isAtScrollEnd(): Boolean {
         return lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.let {
             it.index == lazyListState.layoutInfo.totalItemsCount - 1 &&
-                    (it.offset + it.size) <= endOffset
+                (it.offset + it.size) <= endOffset
         } ?: true
     }
 
@@ -193,11 +193,11 @@ class LazyListSnapperLayoutInfo(
         Napier.d(
             message = {
                 "determineTargetIndexForDecay. " +
-                        "currentIndex: $currentIndex, " +
-                        "distancePerChild: $distancePerItem, " +
-                        "maximumFlingDistance: $maximumFlingDistance, " +
-                        "flingDistance: $flingDistance, " +
-                        "indexDelta: $indexDelta"
+                    "currentIndex: $currentIndex, " +
+                    "distancePerChild: $distancePerItem, " +
+                    "maximumFlingDistance: $maximumFlingDistance, " +
+                    "flingDistance: $flingDistance, " +
+                    "indexDelta: $indexDelta"
             }
         )
 
