@@ -16,57 +16,60 @@
 
 package dev.chrisbanes.snapper
 
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import io.github.aakira.napier.Napier
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.truncate
 
 interface SnapFlingLayout {
 
     val snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int
 
-    val endContentPadding: Int
-
-    val layoutSize: Int
-    val itemCount: Int
-
+    val startOffset: Int
+    val endOffset: Int
     val currentItemIndex: Int
 
-    fun sizeForItem(index: Int): Int
-    fun offsetForItem(index: Int): Int
+    fun determineTargetIndexForDecay(
+        currentIndex: Int,
+        velocity: Float,
+        decayAnimationSpec: DecayAnimationSpec<Float>,
+        maximumFlingDistance: Float,
+    ): Int
+
+    fun determineTargetIndexForSpring(
+        currentIndex: Int,
+        velocity: Float,
+    ): Int
+
+    fun itemSize(index: Int): Int
+    fun itemOffset(index: Int): Int
 
     fun distanceToCurrentItemSnap(): Int
     fun distanceToNextItemSnap(): Int
 
     fun isAtScrollStart(): Boolean
     fun isAtScrollEnd(): Boolean
-
-    /**
-     * Computes an average pixel value to pass a single child.
-     *
-     * Returns a negative value if it cannot be calculated.
-     *
-     * @return A float value that is the average number of pixels needed to scroll by one view in
-     * the relevant direction.
-     */
-    fun distancePerItem(): Float
 }
 
 internal class LazyListSnapFlingLayout(
     private val lazyListState: LazyListState,
-    override val endContentPadding: Int,
+    private val endContentPadding: Int,
     override val snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int,
 ) : SnapFlingLayout {
 
-    override val layoutSize: Int
-        get() {
-            return lazyListState.layoutInfo.viewportEndOffset +
-                lazyListState.layoutInfo.viewportStartOffset -
-                endContentPadding
-        }
+    /**
+     * Offset start for LazyLists is always 0
+     */
+    override val startOffset: Int = 0
 
-    override val itemCount: Int
-        get() = lazyListState.layoutInfo.totalItemsCount
+    override val endOffset: Int
+        get() = lazyListState.layoutInfo.viewportStartOffset - endContentPadding
+
+    private val itemCount: Int get() = lazyListState.layoutInfo.totalItemsCount
 
     override val currentItemIndex: Int
         get() = currentItem.index
@@ -91,19 +94,141 @@ internal class LazyListSnapFlingLayout(
         return current.offset - snapOffsetForItem(this, current.index)
     }
 
-    override fun sizeForItem(index: Int): Int {
+    override fun itemSize(index: Int): Int {
         return lazyListState.layoutInfo.visibleItemsInfo.firstOrNull {
             it.index == index
         }?.size ?: 0
     }
 
-    override fun offsetForItem(index: Int): Int {
+    override fun itemOffset(index: Int): Int {
         return lazyListState.layoutInfo.visibleItemsInfo.firstOrNull {
             it.index == index
         }?.offset ?: 0
     }
 
-    override fun distancePerItem(): Float = with(lazyListState.layoutInfo) {
+    override fun isAtScrollStart(): Boolean = with(lazyListState.layoutInfo) {
+        return visibleItemsInfo.isEmpty() || visibleItemsInfo.first().offset == 0
+    }
+
+    override fun isAtScrollEnd(): Boolean = with(lazyListState.layoutInfo) {
+        if (visibleItemsInfo.isEmpty()) return true
+        val lastItem = visibleItemsInfo.last()
+        return lastItem.index == totalItemsCount - 1 &&
+            (lastItem.offset + lastItem.size) <= viewportEndOffset
+    }
+
+    override fun determineTargetIndexForSpring(
+        currentIndex: Int,
+        velocity: Float,
+    ): Int {
+        // We can't trust the velocity right now. We're waiting on
+        // https://android-review.googlesource.com/c/platform/frameworks/support/+/1826965/,
+        // which will be available in Compose Foundation 1.1.
+        // TODO: uncomment this once we move to Compose Foundation 1.1
+        // if (initialVelocity.absoluteValue > 1) {
+        //    // If the velocity isn't zero, spring in the relevant direction
+        //    return when {
+        //        initialVelocity > 0 -> {
+        //            (currentItemInfo.index + 1).coerceIn(0, lazyListState.layoutInfo.lastIndex)
+        //        }
+        //        else -> currentItemInfo.index
+        //    }
+        // }
+
+        // Otherwise we look at the current offset, and spring to whichever is closer
+        val distanceToNextSnap = distanceToNextItemSnap()
+        val distanceToPreviousSnap = distanceToCurrentItemSnap()
+
+        return if (distanceToNextSnap < -distanceToPreviousSnap) {
+            (currentIndex + 1).coerceIn(0, itemCount - 1)
+        } else {
+            currentIndex
+        }
+    }
+
+    override fun determineTargetIndexForDecay(
+        currentIndex: Int,
+        velocity: Float,
+        decayAnimationSpec: DecayAnimationSpec<Float>,
+        maximumFlingDistance: Float,
+    ): Int {
+        val distancePerItem = distancePerItem()
+        if (distancePerItem <= 0) {
+            // If we don't have a valid distance, return the current item
+            return currentIndex
+        }
+
+        require(maximumFlingDistance >= 0) {
+            "Values returned from maximumFlingDistance should be >= 0"
+        }
+        val flingDistance = decayAnimationSpec.calculateTargetValue(0f, velocity)
+            .coerceIn(-maximumFlingDistance, maximumFlingDistance)
+
+        val distanceToNextSnap = if (velocity > 0) {
+            // forwards, toward index + 1
+            distanceToNextItemSnap()
+        } else {
+            distanceToCurrentItemSnap()
+        }
+
+        /**
+         * We calculate the index delta by dividing the fling distance by the average
+         * scroll per child.
+         *
+         * We take the current item offset into account by subtracting `distanceToNextSnap`
+         * from the fling distance. This is then applied as an extra index delta below.
+         */
+        val indexDelta = truncate(
+            (flingDistance - distanceToNextSnap) / distancePerItem
+        ).let {
+            // As we removed the `distanceToNextSnap` from the fling distance, we need to calculate
+            // whether we need to take that into account...
+            if (velocity > 0) {
+                // If we're flinging forward, distanceToNextSnap represents the scroll distance
+                // to index + 1, so we need to add that (1) to the calculate delta
+                it.toInt() + 1
+            } else {
+                // If we're going backwards, distanceToNextSnap represents the scroll distance
+                // to the snap point of the current index, so there's nothing to do
+                it.toInt()
+            }
+        }
+
+        Napier.d(
+            message = {
+                "determineTargetIndexForDecay. " +
+                    "currentIndex: $currentIndex, " +
+                    "distancePerChild: $distancePerItem, " +
+                    "maximumFlingDistance: $maximumFlingDistance, " +
+                    "flingDistance: $flingDistance, " +
+                    "indexDelta: $indexDelta"
+            }
+        )
+
+        return (currentIndex + indexDelta).coerceIn(0, itemCount - 1)
+    }
+
+    /**
+     * This attempts to calculate the item spacing for the layout, by looking at the distance
+     * between the visible items. If there's only 1 visible item available, it returns 0.
+     */
+    private fun calculateItemSpacing(): Int = with(lazyListState.layoutInfo) {
+        if (visibleItemsInfo.size >= 2) {
+            val first = visibleItemsInfo[0]
+            val second = visibleItemsInfo[1]
+            second.offset - (first.size + first.offset)
+        } else 0
+    }
+
+    /**
+     * Computes an average pixel value to pass a single child.
+     *
+     * Returns a negative value if it cannot be calculated.
+     *
+     * @return A float value that is the average number of pixels needed to scroll by one view in
+     * the relevant direction.
+     */
+    private fun distancePerItem(): Float = with(lazyListState.layoutInfo) {
         if (visibleItemsInfo.isEmpty()) return -1f
 
         val minPosView = visibleItemsInfo.minByOrNull { it.offset } ?: return -1f
@@ -119,28 +244,5 @@ internal class LazyListSnapFlingLayout(
             0 -> -1f // If we don't have a distance, return -1
             else -> (distance + calculateItemSpacing()) / visibleItemsInfo.size.toFloat()
         }
-    }
-
-    override fun isAtScrollStart(): Boolean = with(lazyListState.layoutInfo) {
-        return visibleItemsInfo.isEmpty() || visibleItemsInfo.first().offset == 0
-    }
-
-    override fun isAtScrollEnd(): Boolean = with(lazyListState.layoutInfo) {
-        if (visibleItemsInfo.isEmpty()) return true
-        val lastItem = visibleItemsInfo.last()
-        return lastItem.index == totalItemsCount - 1 &&
-            (lastItem.offset + lastItem.size) <= viewportEndOffset
-    }
-
-    /**
-     * This attempts to calculate the item spacing for the layout, by looking at the distance
-     * between the visible items. If there's only 1 visible item available, it returns 0.
-     */
-    private fun calculateItemSpacing(): Int = with(lazyListState.layoutInfo) {
-        if (visibleItemsInfo.size >= 2) {
-            val first = visibleItemsInfo[0]
-            val second = visibleItemsInfo[1]
-            second.offset - (first.size + first.offset)
-        } else 0
     }
 }
