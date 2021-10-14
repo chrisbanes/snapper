@@ -18,7 +18,6 @@
 
 package dev.chrisbanes.snapper
 
-import androidx.annotation.Px
 import androidx.compose.animation.core.AnimationScope
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
@@ -64,68 +63,87 @@ object SnapperFlingBehaviorDefaults {
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior], which does not limit
      * the fling distance.
      */
-    val MaximumFlingDistance: (SnapFlingLayout) -> Float = { Float.MAX_VALUE }
+    val MaximumFlingDistance: (SnapperLayoutInfo) -> Float = { Float.MAX_VALUE }
 }
 
 /**
  * Create and remember a snapping [FlingBehavior] to be used with [LazyListState].
  *
- * @param lazyListState The [LazyListState] to update.
+ * @param layoutInfo The [SnapperLayoutInfo] to use.
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
- * @param snapOffsetForItem Block which returns which offset the given item should 'snap' to.
- * See [SnapOffsets] for provided values.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
- * @param endContentPadding The amount of content padding on the end edge of the lazy list
- * in pixels (end/bottom depending on the scrolling direction).
  */
 @ExperimentalSnapperApi
 @Composable
 fun rememberSnapperFlingBehavior(
-    lazyListState: LazyListState,
+    layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapOffsetForItem: (layout: SnapFlingLayout, index: Int) -> Int = SnapOffsets.Center,
-    maximumFlingDistance: (SnapFlingLayout) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
-    @Px endContentPadding: Int = 0,
+    maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = remember(
-    lazyListState,
+    layoutInfo,
     decayAnimationSpec,
     springAnimationSpec,
-    snapOffsetForItem,
     maximumFlingDistance,
-    endContentPadding,
 ) {
     SnapperFlingBehavior(
-        layout = LazyListSnapFlingLayout(
-            lazyListState = lazyListState,
-            endContentPadding = endContentPadding,
-            snapOffsetForItem = snapOffsetForItem,
-        ),
+        layoutInfo = layoutInfo,
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
         maximumFlingDistance = maximumFlingDistance,
     )
 }
 
+@ExperimentalSnapperApi
+abstract class SnapperLayoutInfo {
+    abstract val snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, index: Int) -> Int
+
+    abstract val startOffset: Int
+    abstract val endOffset: Int
+    abstract val currentItemIndex: Int
+
+    abstract fun determineTargetIndexForDecay(
+        currentIndex: Int,
+        velocity: Float,
+        decayAnimationSpec: DecayAnimationSpec<Float>,
+        maximumFlingDistance: Float,
+    ): Int
+
+    abstract fun determineTargetIndexForSpring(
+        currentIndex: Int,
+        velocity: Float,
+    ): Int
+
+    abstract fun itemSize(index: Int): Int
+    abstract fun itemOffset(index: Int): Int
+
+    abstract fun distanceToCurrentItemSnap(): Int
+    abstract fun distanceToNextItemSnap(): Int
+
+    abstract fun isAtScrollStart(): Boolean
+    abstract fun isAtScrollEnd(): Boolean
+}
+
 /**
  * Contains a number of values which can be used for the `snapOffsetForItem` parameter on
  * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
  */
+@ExperimentalSnapperApi
 @Suppress("unused") // public vals which aren't used in the project
 object SnapOffsets {
     /**
      * Snap offset which results in the start edge of the item, snapping to the start scrolling
      * edge of the lazy list.
      */
-    val Start: (SnapFlingLayout, Int) -> Int = { layout, _ -> layout.startOffset }
+    val Start: (SnapperLayoutInfo, Int) -> Int = { layout, _ -> layout.startOffset }
 
     /**
      * Snap offset which results in the item snapping in the center of the scrolling viewport
      * of the lazy list.
      */
-    val Center: (SnapFlingLayout, Int) -> Int = { layout, index ->
+    val Center: (SnapperLayoutInfo, Int) -> Int = { layout, index ->
         layout.startOffset + (layout.endOffset - layout.startOffset - layout.itemSize(index)) / 2
     }
 
@@ -133,7 +151,7 @@ object SnapOffsets {
      * Snap offset which results in the end edge of the item, snapping to the end scrolling
      * edge of the lazy list.
      */
-    val End: (SnapFlingLayout, Int) -> Int = { layout, index ->
+    val End: (SnapperLayoutInfo, Int) -> Int = { layout, index ->
         layout.endOffset - layout.itemSize(index)
     }
 }
@@ -153,10 +171,10 @@ object SnapOffsets {
  */
 @ExperimentalSnapperApi
 class SnapperFlingBehavior(
-    private val layout: SnapFlingLayout,
+    private val layoutInfo: SnapperLayoutInfo,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    private val maximumFlingDistance: (SnapFlingLayout) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+    private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ) : FlingBehavior {
     /**
      * The target item index for any on-going animations.
@@ -169,23 +187,23 @@ class SnapperFlingBehavior(
     ): Float {
         // If we're at the start/end of the scroll range, we don't snap and assume the user
         // wanted to scroll here.
-        if (layout.isAtScrollStart() || layout.isAtScrollEnd()) {
+        if (layoutInfo.isAtScrollStart() || layoutInfo.isAtScrollEnd()) {
             return initialVelocity
         }
 
         Napier.d(message = { "performFling. initialVelocity: $initialVelocity" })
 
-        val maxFlingDistance = maximumFlingDistance(layout)
+        val maxFlingDistance = maximumFlingDistance(layoutInfo)
         require(maxFlingDistance > 0) {
             "Distance returned by maximumFlingDistance should be greater than 0"
         }
 
-        val currentIndex = layout.currentItemIndex
+        val currentIndex = layoutInfo.currentItemIndex
         return if (decayAnimationSpec.canDecayBeyondCurrentItem(initialVelocity)) {
             // If the decay fling can scroll past the current item, fling with decay
             performDecayFling(
                 initialIndex = currentIndex,
-                targetIndex = layout.determineTargetIndexForDecay(
+                targetIndex = layoutInfo.determineTargetIndexForDecay(
                     currentIndex = currentIndex,
                     velocity = initialVelocity,
                     decayAnimationSpec = decayAnimationSpec,
@@ -195,7 +213,7 @@ class SnapperFlingBehavior(
             )
         } else {
             // Otherwise we 'spring' to current/next item
-            val targetIndex = layout.determineTargetIndexForSpring(currentIndex, initialVelocity)
+            val targetIndex = layoutInfo.determineTargetIndexForSpring(currentIndex, initialVelocity)
             performSpringFling(
                 initialIndex = currentIndex,
                 targetIndex = targetIndex,
@@ -231,7 +249,7 @@ class SnapperFlingBehavior(
         flingThenSpring: Boolean = true,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialIndex == targetIndex && layout.distanceToCurrentItemSnap() == 0) {
+        if (initialIndex == targetIndex && layoutInfo.distanceToCurrentItemSnap() == 0) {
             Napier.d(
                 message = {
                     "Skipping decay: already at target. " +
@@ -282,10 +300,10 @@ class SnapperFlingBehavior(
                     // If we're still running and fling-then-spring is enabled, check to see
                     // if we're at the 1 item width away (in the relevant direction). If we are,
                     // set the spring-after flag and cancel the current decay
-                    if (velocity > 0 && layout.currentItemIndex == targetIndex - 1) {
+                    if (velocity > 0 && layoutInfo.currentItemIndex == targetIndex - 1) {
                         needSpringAfter = true
                         cancelAnimation()
-                    } else if (velocity < 0 && layout.currentItemIndex == targetIndex) {
+                    } else if (velocity < 0 && layoutInfo.currentItemIndex == targetIndex) {
                         needSpringAfter = true
                         cancelAnimation()
                     }
@@ -310,7 +328,7 @@ class SnapperFlingBehavior(
         if (needSpringAfter) {
             // The needSpringAfter flag is enabled, so start a spring to the target using the
             // remaining velocity
-            return performSpringFling(layout.currentItemIndex, targetIndex, velocityLeft)
+            return performSpringFling(layoutInfo.currentItemIndex, targetIndex, velocityLeft)
         }
 
         return consumeVelocityIfNotAtScrollEdge(velocityLeft)
@@ -322,7 +340,7 @@ class SnapperFlingBehavior(
         initialVelocity: Float = 0f,
     ): Float {
         // If we're already at the target + snap offset, skip
-        if (initialIndex == targetIndex && layout.distanceToCurrentItemSnap() == 0) {
+        if (initialIndex == targetIndex && layoutInfo.distanceToCurrentItemSnap() == 0) {
             Napier.d(
                 message = {
                     "Skipping spring: already at target. " +
@@ -355,8 +373,8 @@ class SnapperFlingBehavior(
                 initialVelocity = initialVelocity,
             ).animateTo(
                 targetValue = when {
-                    targetIndex > initialIndex -> layout.distanceToNextItemSnap()
-                    else -> layout.distanceToCurrentItemSnap()
+                    targetIndex > initialIndex -> layoutInfo.distanceToNextItemSnap()
+                    else -> layoutInfo.distanceToCurrentItemSnap()
                 }.toFloat(),
                 animationSpec = springAnimationSpec,
             ) {
@@ -393,7 +411,7 @@ class SnapperFlingBehavior(
         targetIndex: Int,
         scrollBy: (pixels: Float) -> Float,
     ): Boolean {
-        val currentIndex = layout.currentItemIndex
+        val currentIndex = layoutInfo.currentItemIndex
 
         Napier.d(message = { "scroll tick. vel:$velocity, current item: $currentIndex" })
 
@@ -436,10 +454,10 @@ class SnapperFlingBehavior(
 
         return if (initialVelocity < 0) {
             // backwards, towards 0
-            flingDistance <= layout.distanceToCurrentItemSnap()
+            flingDistance <= layoutInfo.distanceToCurrentItemSnap()
         } else {
             // forwards, toward index + 1
-            flingDistance >= layout.distanceToNextItemSnap()
+            flingDistance >= layoutInfo.distanceToNextItemSnap()
         }
     }
 
@@ -454,20 +472,20 @@ class SnapperFlingBehavior(
     ): Int = when {
         // forwards
         initialVelocity > 0 && currentIndex == targetIndex + 1 -> {
-            layout.distanceToCurrentItemSnap()
+            layoutInfo.distanceToCurrentItemSnap()
         }
         initialVelocity < 0 && currentIndex == targetIndex - 1 -> {
-            layout.distanceToNextItemSnap()
+            layoutInfo.distanceToNextItemSnap()
         }
         else -> 0
     }
 
     private fun consumeVelocityIfNotAtScrollEdge(velocity: Float): Float {
-        if (velocity < 0 && layout.isAtScrollStart()) {
+        if (velocity < 0 && layoutInfo.isAtScrollStart()) {
             // If there is remaining velocity towards the start and we're at the scroll start,
             // we don't consume. This enables the overscroll effect where supported
             return velocity
-        } else if (velocity > 0 && layout.isAtScrollEnd()) {
+        } else if (velocity > 0 && layoutInfo.isAtScrollEnd()) {
             // If there is remaining velocity towards the end and we're at the scroll end,
             // we don't consume. This enables the overscroll effect where supported
             return velocity

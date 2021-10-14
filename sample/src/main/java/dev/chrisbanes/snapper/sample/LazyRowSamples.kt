@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
+import dev.chrisbanes.snapper.rememberLazyListSnapperLayoutInfo
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 
 internal val LazyRowSamples = listOf(
@@ -42,8 +43,10 @@ private fun LazyRowSample() {
     LazyRow(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = lazyListState,
-            endContentPadding = with(LocalDensity.current) { 16.dp.roundToPx() },
+            layoutInfo = rememberLazyListSnapperLayoutInfo(
+                lazyListState = lazyListState,
+                endContentPadding = with(LocalDensity.current) { 16.dp.roundToPx() },
+            )
         ),
         contentPadding = PaddingValues(16.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),

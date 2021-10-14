@@ -301,7 +301,7 @@ abstract class SnapperFlingBehaviorTest(
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState,
     ): SnapperFlingBehavior = SnapperFlingBehavior(
-        layout = LazyListSnapFlingLayout(
+        layout = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
             endContentPadding = endContentPadding,
             snapOffsetForItem = SnapOffsets.Start, // FIXME
