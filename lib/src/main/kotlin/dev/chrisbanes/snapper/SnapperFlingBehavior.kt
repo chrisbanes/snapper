@@ -163,7 +163,7 @@ object SnapOffsets {
  * Note: the default parameter value for [decayAnimationSpec] is different to the value used in
  * [rememberSnapperFlingBehavior], due to not being able to access composable functions.
  *
- * @param lazyListState The [LazyListState] to update.
+ * @param layoutInfo The [SnapperLayoutInfo] to use.
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
