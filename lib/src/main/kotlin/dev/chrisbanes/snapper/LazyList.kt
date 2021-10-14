@@ -58,7 +58,6 @@ class LazyListSnapperLayoutInfo(
     private val endContentPadding: Int,
     override val snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, index: Int) -> Int,
 ) : SnapperLayoutInfo() {
-
     /**
      * Offset start for LazyLists is always 0
      */
@@ -104,15 +103,17 @@ class LazyListSnapperLayoutInfo(
         }?.offset ?: 0
     }
 
-    override fun isAtScrollStart(): Boolean = with(lazyListState.layoutInfo) {
-        return visibleItemsInfo.isEmpty() || visibleItemsInfo.first().offset == 0
+    override fun isAtScrollStart(): Boolean {
+        return lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
+            it.index == 0 && it.offset == startOffset
+        } ?: true
     }
 
-    override fun isAtScrollEnd(): Boolean = with(lazyListState.layoutInfo) {
-        if (visibleItemsInfo.isEmpty()) return true
-        val lastItem = visibleItemsInfo.last()
-        return lastItem.index == totalItemsCount - 1 &&
-            (lastItem.offset + lastItem.size) <= viewportEndOffset
+    override fun isAtScrollEnd(): Boolean {
+        return lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.let {
+            it.index == lazyListState.layoutInfo.totalItemsCount - 1 &&
+                    (it.offset + it.size) <= endOffset
+        } ?: true
     }
 
     override fun determineTargetIndexForSpring(
@@ -192,11 +193,11 @@ class LazyListSnapperLayoutInfo(
         Napier.d(
             message = {
                 "determineTargetIndexForDecay. " +
-                    "currentIndex: $currentIndex, " +
-                    "distancePerChild: $distancePerItem, " +
-                    "maximumFlingDistance: $maximumFlingDistance, " +
-                    "flingDistance: $flingDistance, " +
-                    "indexDelta: $indexDelta"
+                        "currentIndex: $currentIndex, " +
+                        "distancePerChild: $distancePerItem, " +
+                        "maximumFlingDistance: $maximumFlingDistance, " +
+                        "flingDistance: $flingDistance, " +
+                        "indexDelta: $indexDelta"
             }
         )
 
