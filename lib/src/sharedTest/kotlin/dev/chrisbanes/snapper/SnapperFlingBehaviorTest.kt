@@ -301,16 +301,13 @@ abstract class SnapperFlingBehaviorTest(
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState,
     ): SnapperFlingBehavior = SnapperFlingBehavior(
-        layout = LazyListSnapperLayoutInfo(
+        layoutInfo = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
             endContentPadding = endContentPadding,
-            snapOffsetForItem = SnapOffsets.Start, // FIXME
+            snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),
-        snapOffsetForItem = SnapOffsets.Start,
-        maximumFlingDistance = {
-            with(rule.density) { maxScrollDistanceDp.dp.roundToPx() }
-        }
+        maximumFlingDistance = { with(rule.density) { maxScrollDistanceDp.dp.toPx() } }
     )
 }
 
@@ -331,6 +328,8 @@ private fun LazyListState.logVisibleItems() = Napier.d(
         "Visible Items. " + layoutInfo.visibleItemsInfo.joinToString { it.log() }
     }
 )
+
+private fun LazyListItemInfo.log(): String = "[i:$index,o:$offset,s:$size]"
 
 private fun LazyListState.assertCurrentItem(
     index: Int,
