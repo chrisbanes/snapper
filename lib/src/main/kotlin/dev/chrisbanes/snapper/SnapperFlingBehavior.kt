@@ -527,7 +527,7 @@ class SnapperFlingBehavior(
 
         Napier.d(
             message = {
-                "scroll tick. vel:${velocity}, current item: ${current.log()}"
+                "scroll tick. vel:$velocity, current item: ${current.log()}"
             }
         )
 
