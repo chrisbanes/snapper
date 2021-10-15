@@ -67,12 +67,9 @@ class LazyListSnapperLayoutInfo(
     private val endContentPadding: Int,
     private val snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int,
 ) : SnapperLayoutInfo() {
-    /**
-     * Offset start for LazyLists is always 0
-     */
-    override val startOffset: Int = 0
+    override val startScrollOffset: Int = 0
 
-    override val endOffset: Int
+    override val endScrollOffset: Int
         get() = lazyListState.layoutInfo.viewportEndOffset - endContentPadding
 
     private val itemCount: Int get() = lazyListState.layoutInfo.totalItemsCount
@@ -101,13 +98,13 @@ class LazyListSnapperLayoutInfo(
 
     override fun canScrollTowardsStart(): Boolean {
         return lazyListState.layoutInfo.visibleItemsInfo.firstOrNull()?.let {
-            it.index > 0 || it.offset < startOffset
+            it.index > 0 || it.offset < startScrollOffset
         } ?: false
     }
 
     override fun canScrollTowardsEnd(): Boolean {
         return lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.let {
-            it.index < itemCount - 1 || (it.offset + it.size) > endOffset
+            it.index < itemCount - 1 || (it.offset + it.size) > endScrollOffset
         } ?: false
     }
 
