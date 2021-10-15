@@ -16,13 +16,18 @@
 
 package dev.chrisbanes.snapper
 
-import androidx.annotation.Px
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import io.github.aakira.napier.Napier
 import kotlin.math.max
 import kotlin.math.min
@@ -30,30 +35,32 @@ import kotlin.math.roundToInt
 import kotlin.math.truncate
 
 /**
- * Create and remember a [LazyListSnapperLayoutInfo] which works with [LazyListState].
+ * Create and remember a [SnapperLayoutInfo] which works with [LazyListState].
  *
  * @param lazyListState The [LazyListState] to update.
  * @param snapOffsetForItem Block which returns which offset the given item should 'snap' to.
  * See [SnapOffsets] for provided values.
  * @param endContentPadding The amount of content padding on the end edge of the lazy list
- * in pixels (end/bottom depending on the scrolling direction).
+ * in dps (end/bottom depending on the scrolling direction).
  */
 @ExperimentalSnapperApi
 @Composable
 fun rememberLazyListSnapperLayoutInfo(
     lazyListState: LazyListState,
     snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int = SnapOffsets.Center,
-    @Px endContentPadding: Int = 0,
-): LazyListSnapperLayoutInfo = remember(lazyListState, endContentPadding, snapOffsetForItem) {
+    endContentPadding: Dp = 0.dp,
+): LazyListSnapperLayoutInfo = remember(lazyListState, snapOffsetForItem) {
     LazyListSnapperLayoutInfo(
         lazyListState = lazyListState,
-        endContentPadding = endContentPadding,
         snapOffsetForItem = snapOffsetForItem,
     )
+}.apply {
+    this.endContentPadding = with(LocalDensity.current) { endContentPadding.roundToPx() }
 }
 
 /**
- * A [SnapperLayoutInfo] which works with [LazyListState].
+ * A [SnapperLayoutInfo] which works with [LazyListState]. Typically this would be remembered
+ * using [rememberLazyListSnapperLayoutInfo].
  *
  * @param lazyListState The [LazyListState] to update.
  * @param snapOffsetForItem Block which returns which offset the given item should 'snap' to.
@@ -64,10 +71,12 @@ fun rememberLazyListSnapperLayoutInfo(
 @ExperimentalSnapperApi
 class LazyListSnapperLayoutInfo(
     private val lazyListState: LazyListState,
-    private val endContentPadding: Int,
     private val snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int,
+    endContentPadding: Int = 0,
 ) : SnapperLayoutInfo() {
     override val startScrollOffset: Int = 0
+
+    internal var endContentPadding: Int by mutableStateOf(endContentPadding)
 
     override val endScrollOffset: Int
         get() = lazyListState.layoutInfo.viewportEndOffset - endContentPadding

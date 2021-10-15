@@ -5,22 +5,22 @@ package dev.chrisbanes.snapper {
   }
 
   public final class LazyListKt {
-    method @androidx.compose.runtime.Composable @dev.chrisbanes.snapper.ExperimentalSnapperApi public static dev.chrisbanes.snapper.LazyListSnapperLayoutInfo rememberLazyListSnapperLayoutInfo(androidx.compose.foundation.lazy.LazyListState lazyListState, optional kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem, optional @Px int endContentPadding);
+    method @androidx.compose.runtime.Composable @dev.chrisbanes.snapper.ExperimentalSnapperApi public static dev.chrisbanes.snapper.LazyListSnapperLayoutInfo rememberLazyListSnapperLayoutInfo(androidx.compose.foundation.lazy.LazyListState lazyListState, optional kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem, optional float endContentPadding);
   }
 
   @dev.chrisbanes.snapper.ExperimentalSnapperApi public final class LazyListSnapperLayoutInfo extends dev.chrisbanes.snapper.SnapperLayoutInfo {
-    ctor public LazyListSnapperLayoutInfo(androidx.compose.foundation.lazy.LazyListState lazyListState, int endContentPadding, kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem);
+    ctor public LazyListSnapperLayoutInfo(androidx.compose.foundation.lazy.LazyListState lazyListState, kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem, optional int endContentPadding);
     method public boolean canScrollTowardsEnd();
     method public boolean canScrollTowardsStart();
     method public int determineTargetIndex(float velocity, androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, float maximumFlingDistance);
     method public int distanceToIndexSnap(int index);
     method public dev.chrisbanes.snapper.SnapperLayoutItemInfo? getCurrentItem();
-    method public int getEndOffset();
-    method public int getStartOffset();
+    method public int getEndScrollOffset();
+    method public int getStartScrollOffset();
     method public kotlin.sequences.Sequence<dev.chrisbanes.snapper.SnapperLayoutItemInfo> getVisibleItems();
     property public dev.chrisbanes.snapper.SnapperLayoutItemInfo? currentItem;
-    property public int endOffset;
-    property public int startOffset;
+    property public int endScrollOffset;
+    property public int startScrollOffset;
     property public kotlin.sequences.Sequence<dev.chrisbanes.snapper.SnapperLayoutItemInfo> visibleItems;
   }
 
@@ -35,7 +35,7 @@ package dev.chrisbanes.snapper {
   }
 
   @dev.chrisbanes.snapper.ExperimentalSnapperApi public final class SnapperFlingBehavior implements androidx.compose.foundation.gestures.FlingBehavior {
-    ctor public SnapperFlingBehavior(dev.chrisbanes.snapper.SnapperLayoutInfo layoutInfo, androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, optional androidx.compose.animation.core.AnimationSpec<java.lang.Float> springAnimationSpec, optional kotlin.jvm.functions.Function1<? super dev.chrisbanes.snapper.SnapperLayoutInfo,java.lang.Float> maximumFlingDistance);
+    ctor public SnapperFlingBehavior(dev.chrisbanes.snapper.SnapperLayoutInfo layoutInfo, optional kotlin.jvm.functions.Function1<? super dev.chrisbanes.snapper.SnapperLayoutInfo,java.lang.Float> maximumFlingDistance, androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, optional androidx.compose.animation.core.AnimationSpec<java.lang.Float> springAnimationSpec);
     method public Integer? getAnimationTarget();
     method public suspend Object? performFling(androidx.compose.foundation.gestures.ScrollScope, float initialVelocity, kotlin.coroutines.Continuation<? super java.lang.Float> p);
     property public final Integer? animationTarget;
@@ -60,12 +60,12 @@ package dev.chrisbanes.snapper {
     method public abstract int determineTargetIndex(float velocity, androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, float maximumFlingDistance);
     method public abstract int distanceToIndexSnap(int index);
     method public abstract dev.chrisbanes.snapper.SnapperLayoutItemInfo? getCurrentItem();
-    method public abstract int getEndOffset();
-    method public abstract int getStartOffset();
+    method public abstract int getEndScrollOffset();
+    method public abstract int getStartScrollOffset();
     method public abstract kotlin.sequences.Sequence<dev.chrisbanes.snapper.SnapperLayoutItemInfo> getVisibleItems();
     property public abstract dev.chrisbanes.snapper.SnapperLayoutItemInfo? currentItem;
-    property public abstract int endOffset;
-    property public abstract int startOffset;
+    property public abstract int endScrollOffset;
+    property public abstract int startScrollOffset;
     property public abstract kotlin.sequences.Sequence<dev.chrisbanes.snapper.SnapperLayoutItemInfo> visibleItems;
   }
 

@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
@@ -48,10 +47,8 @@ private fun LazyRowSample() {
         flingBehavior = rememberSnapperFlingBehavior(
             layoutInfo = rememberLazyListSnapperLayoutInfo(
                 lazyListState = lazyListState,
-                endContentPadding = with(LocalDensity.current) {
-                    // We need to provide the unresolved end value, so use Ltr
-                    contentPadding.calculateEndPadding(LayoutDirection.Ltr).roundToPx()
-                },
+                // We need to provide the unresolved end value, so use Ltr
+                endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
             ),
         ),
         contentPadding = contentPadding,
