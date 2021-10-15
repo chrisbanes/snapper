@@ -14,7 +14,9 @@ repo_url: 'https://github.com/chrisbanes/snapper'
 # Navigation
 nav:
   - 'Overview': index.md
-  - 'API': api/
+  - 'Usage': usage.md
+  - 'API reference': api/lib/dev.chrisbanes.snapper/
+  - 'Sample code': https://github.com/chrisbanes/snapper/tree/main/sample/src/main/java/dev/chrisbanes/snapper/sample
 
 # Configuration
 theme:
