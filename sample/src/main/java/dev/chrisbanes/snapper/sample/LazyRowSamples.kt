@@ -39,16 +39,19 @@ internal val LazyRowSamples = listOf(
 @Composable
 private fun LazyRowSample() {
     val lazyListState = rememberLazyListState()
+    val contentPadding = PaddingValues(16.dp)
 
     LazyRow(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
             layoutInfo = rememberLazyListSnapperLayoutInfo(
                 lazyListState = lazyListState,
-                endContentPadding = with(LocalDensity.current) { 16.dp.roundToPx() },
-            )
+                endContentPadding = with(LocalDensity.current) {
+                    contentPadding.calculateBottomPadding().roundToPx()
+                },
+            ),
         ),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
