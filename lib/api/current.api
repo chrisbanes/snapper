@@ -6,6 +6,7 @@ package dev.chrisbanes.snapper {
 
   public final class LazyListKt {
     method @androidx.compose.runtime.Composable @dev.chrisbanes.snapper.ExperimentalSnapperApi public static dev.chrisbanes.snapper.LazyListSnapperLayoutInfo rememberLazyListSnapperLayoutInfo(androidx.compose.foundation.lazy.LazyListState lazyListState, optional kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem, optional float endContentPadding);
+    method @androidx.compose.runtime.Composable @dev.chrisbanes.snapper.ExperimentalSnapperApi public static dev.chrisbanes.snapper.SnapperFlingBehavior rememberSnapperFlingBehavior(androidx.compose.foundation.lazy.LazyListState lazyListState, optional kotlin.jvm.functions.Function2<? super dev.chrisbanes.snapper.SnapperLayoutInfo,? super dev.chrisbanes.snapper.SnapperLayoutItemInfo,java.lang.Integer> snapOffsetForItem, optional float endContentPadding, optional androidx.compose.animation.core.DecayAnimationSpec<java.lang.Float> decayAnimationSpec, optional androidx.compose.animation.core.AnimationSpec<java.lang.Float> springAnimationSpec, optional kotlin.jvm.functions.Function1<? super dev.chrisbanes.snapper.SnapperLayoutInfo,java.lang.Float> maximumFlingDistance);
   }
 
   @dev.chrisbanes.snapper.ExperimentalSnapperApi public final class LazyListSnapperLayoutInfo extends dev.chrisbanes.snapper.SnapperLayoutInfo {

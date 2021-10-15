@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
-import dev.chrisbanes.snapper.rememberLazyListSnapperLayoutInfo
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 
 internal val LazyRowSamples = listOf(
@@ -45,11 +44,9 @@ private fun LazyRowSample() {
     LazyRow(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
-            layoutInfo = rememberLazyListSnapperLayoutInfo(
-                lazyListState = lazyListState,
-                // We need to provide the unresolved end value, so use Ltr
-                endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
-            ),
+            lazyListState = lazyListState,
+            // We need to provide the unresolved end value, so use Ltr
+            endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
         ),
         contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(4.dp),

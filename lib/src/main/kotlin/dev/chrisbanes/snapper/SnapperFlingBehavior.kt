@@ -67,7 +67,7 @@ object SnapperFlingBehaviorDefaults {
 }
 
 /**
- * Create and remember a snapping [FlingBehavior] to be used with [LazyListState].
+ * Create and remember a snapping [FlingBehavior] to be used with the given [layoutInfo].
  *
  * @param layoutInfo The [SnapperLayoutInfo] to use. For lazy layouts,
  * you can use [rememberLazyListSnapperLayoutInfo].

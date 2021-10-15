@@ -27,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
-import dev.chrisbanes.snapper.rememberLazyListSnapperLayoutInfo
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 
 internal val LazyColumnSamples = listOf(
@@ -43,10 +42,8 @@ private fun LazyColumnSample() {
     LazyColumn(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
-            layoutInfo = rememberLazyListSnapperLayoutInfo(
-                lazyListState = lazyListState,
-                endContentPadding = contentPadding.calculateBottomPadding(),
-            )
+            lazyListState = lazyListState,
+            endContentPadding = contentPadding.calculateBottomPadding(),
         ),
         contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(4.dp),
