@@ -25,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
@@ -38,14 +37,15 @@ internal val LazyColumnSamples = listOf(
 @Composable
 private fun LazyColumnSample() {
     val lazyListState = rememberLazyListState()
+    val contentPadding = PaddingValues(16.dp)
 
     LazyColumn(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
             lazyListState = lazyListState,
-            endContentPadding = with(LocalDensity.current) { 16.dp.roundToPx() },
+            endContentPadding = contentPadding.calculateBottomPadding(),
         ),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
