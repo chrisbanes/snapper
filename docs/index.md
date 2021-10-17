@@ -1,14 +1,35 @@
 [![Maven Central](https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper)](https://search.maven.org/search?q=g:dev.chrisbanes.snapper)
 
-![](docs/assets/header.png)
+![](assets/header.png)
 
-Snapper is a library which brings snapping to the Compose scrolling layouts (currently only LazyColumn and LazyRow).
+Snapper is a library which brings snapping to the Compose scrolling layouts (currently LazyColumn and LazyRow):
 
-## Usage
+<video width="100%" controls loop style="max-width: 600px">
+    <source src="assets/demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+The basic usage looks like so:
 
 ``` kotlin
-TODO
+val lazyListState = rememberLazyListState()
+
+LazyRow(
+    state = lazyListState,
+    flingBehavior = rememberSnapperFlingBehavior(lazyListState),
+) {
+    // content
+}
 ```
+
+## API Summary
+
+The API is generally split into a few things:
+
+- [SnapperFlingBehavior](api/lib/dev.chrisbanes.snapper/-snapper-layout-info/), which is what apps provide to scrollable containers.
+- A number of [remember functions](api/lib/dev.chrisbanes.snapper/remember-snapper-fling-behavior.html) allowing easy use of `SnapperFlingBehavior` from composables.
+- [SnapperFlingLayoutInfo](api/lib/dev.chrisbanes.snapper/-snapper-layout-info/), which is an facade class allowing `SnapperFlingBehavior` to interact with different scrollable container state in a generic way.
+- Implementations of `SnapperFlingLayoutInfo` for easy integration, such as [LazyListFlingLayoutInfo](api/lib/dev.chrisbanes.snapper/-lazy-list-snapper-layout-info/).
 
 For examples, refer to the [samples](https://github.com/chrisbanes/snapper/tree/main/sample/src/main/java/dev/chrisbanes/snapper/sample).
 
