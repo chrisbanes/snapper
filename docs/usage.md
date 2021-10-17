@@ -69,7 +69,7 @@ being used, via the `endContentPadding` parameter.
     }
     ```
 
-## Knowing the 'current' item
+## Finding the 'current' item
 
 Most of the time apps will probably use the short-hand convenience function: 
 `rememberSnapperFlingBehavior(LazyListState)`, but there are times when
