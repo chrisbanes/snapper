@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#usage" class="md-skip">
+        <a href="#api-summary" class="md-skip">
           Skip to content
         </a>
       
@@ -243,8 +243,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
+  <a href="#api-summary" class="md-nav__link">
+    API Summary
   </a>
   
 </li>
@@ -279,8 +279,38 @@
   
   
     <li class="md-nav__item">
-      <a href="api/" class="md-nav__link">
-        API
+      <a href="usage/" class="md-nav__link">
+        Usage
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/lib/dev.chrisbanes.snapper/" class="md-nav__link">
+        API reference
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://github.com/chrisbanes/snapper/tree/main/sample/src/main/java/dev/chrisbanes/snapper/sample" class="md-nav__link">
+        Sample code
       </a>
     </li>
   
@@ -310,8 +340,8 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#usage" class="md-nav__link">
-    Usage
+  <a href="#api-summary" class="md-nav__link">
+    API Summary
   </a>
   
 </li>
@@ -350,11 +380,31 @@
                   <h1>Overview</h1>
                 
                 <p><a href="https://search.maven.org/search?q=g:dev.chrisbanes.snapper"><img alt="Maven Central" src="https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper" /></a></p>
-<p><img alt="" src="docs/assets/header.png" /></p>
-<p>Snapper is a library which brings snapping to the Compose scrolling layouts (currently only LazyColumn and LazyRow).</p>
-<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="n">TODO</span>
+<p><img alt="" src="assets/header.png" /></p>
+<p>Snapper is a library which brings snapping to the Compose scrolling layouts (currently LazyColumn and LazyRow):</p>
+<video width="100%" controls loop style="max-width: 600px">
+    <source src="assets/demo.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video>
+
+<p>The basic usage looks like so:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">val</span> <span class="nv">lazyListState</span> <span class="o">=</span> <span class="n">rememberLazyListState</span><span class="p">()</span>
+
+<span class="n">LazyRow</span><span class="p">(</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">lazyListState</span><span class="p">,</span>
+    <span class="n">flingBehavior</span> <span class="o">=</span> <span class="n">rememberSnapperFlingBehavior</span><span class="p">(</span><span class="n">lazyListState</span><span class="p">),</span>
+<span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// content</span>
+<span class="p">}</span>
 </code></pre></div>
+<h2 id="api-summary">API Summary<a class="headerlink" href="#api-summary" title="Permanent link">&para;</a></h2>
+<p>The API is generally split into a few things:</p>
+<ul>
+<li><a href="api/lib/dev.chrisbanes.snapper/-snapper-layout-info/">SnapperFlingBehavior</a>, which is what apps provide to scrollable containers.</li>
+<li>A number of <a href="api/lib/dev.chrisbanes.snapper/remember-snapper-fling-behavior.html">remember functions</a> allowing easy use of <code>SnapperFlingBehavior</code> from composables.</li>
+<li><a href="api/lib/dev.chrisbanes.snapper/-snapper-layout-info/">SnapperFlingLayoutInfo</a>, which is an facade class allowing <code>SnapperFlingBehavior</code> to interact with different scrollable container state in a generic way.</li>
+<li>Implementations of <code>SnapperFlingLayoutInfo</code> for easy integration, such as <a href="api/lib/dev.chrisbanes.snapper/-lazy-list-snapper-layout-info/">LazyListFlingLayoutInfo</a>.</li>
+</ul>
 <p>For examples, refer to the <a href="https://github.com/chrisbanes/snapper/tree/main/sample/src/main/java/dev/chrisbanes/snapper/sample">samples</a>.</p>
 <h2 id="download">Download<a class="headerlink" href="#download" title="Permanent link">&para;</a></h2>
 <p><a href="https://search.maven.org/search?q=g:dev.chrisbanes.snapper"><img alt="Maven Central" src="https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper" /></a></p>
@@ -397,6 +447,26 @@ limitations under the License.
       
         
 <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+      
+        
+        <a href="usage/" class="md-footer__link md-footer__link--next" aria-label="Next: Usage" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Usage
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
