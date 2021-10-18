@@ -36,7 +36,6 @@ jobs:
         name: Build
         with:
           job-id: linux
-          concurrent: false # true makes the logs unreadable
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: |
@@ -83,7 +82,6 @@ jobs:
       - uses: burrunan/gradle-cache-action@v1
         with:
           job-id: mac
-          concurrent: false # true makes the logs unreadable
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
 
@@ -154,7 +152,6 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_KEY_PASSWORD }}
         with:
           job-id: linux
-          concurrent: false # true makes the logs unreadable
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
           arguments: publish --no-parallel

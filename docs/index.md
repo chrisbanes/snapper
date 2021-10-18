@@ -19,6 +19,7 @@ Snapper is a library which brings snapping to the Compose scrolling layouts (cur
         Your browser does not support the video tag.
     </video>
 
+
 The basic usage looks like so:
 
 ``` kotlin

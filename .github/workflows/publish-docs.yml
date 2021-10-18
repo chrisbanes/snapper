@@ -4,9 +4,6 @@ on:
   push:
     tags:
       - v*
-    # Remove this once we get to the first release
-    branches: 
-      - main
 
 jobs:
   deploy_docs:
@@ -40,7 +37,6 @@ jobs:
         name: Build
         with:
           job-id: linux
-          concurrent: false # true makes the logs unreadable
           arguments: dokkaHtmlMultiModule
 
       - name: Build site
