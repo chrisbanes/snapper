@@ -4,10 +4,20 @@
 
 Snapper is a library which brings snapping to the Compose scrolling layouts (currently LazyColumn and LazyRow):
 
-<video width="100%" controls loop style="max-width: 600px">
-    <source src="assets/demo.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
+=== "Sample app"
+
+    <video width="100%" controls loop style="max-width: 600px">
+        <source src="assets/demo.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+
+=== "Tivi"
+
+    <video width="100%" controls loop style="max-width: 600px">
+        <source src="assets/tivi.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
 
 The basic usage looks like so:
 
