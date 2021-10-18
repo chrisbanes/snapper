@@ -382,11 +382,19 @@
                 <p><a href="https://search.maven.org/search?q=g:dev.chrisbanes.snapper"><img alt="Maven Central" src="https://img.shields.io/maven-central/v/dev.chrisbanes.snapper/snapper" /></a></p>
 <p><img alt="" src="assets/header.png" /></p>
 <p>Snapper is a library which brings snapping to the Compose scrolling layouts (currently LazyColumn and LazyRow):</p>
-<video width="100%" controls loop style="max-width: 600px">
+<div class="tabbed-set" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Sample app</label><div class="tabbed-content">
+<p><video width="100%" controls loop style="max-width: 600px">
     <source src="assets/demo.mp4" type="video/mp4">
     Your browser does not support the video tag.
-</video>
-
+</video></p>
+</div>
+<input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><label for="__tabbed_1_2">Tivi</label><div class="tabbed-content">
+<p><video width="100%" controls loop style="max-width: 600px">
+    <source src="assets/tivi.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+</video></p>
+</div>
+</div>
 <p>The basic usage looks like so:</p>
 <div class="highlight"><pre><span></span><code><span class="kd">val</span> <span class="nv">lazyListState</span> <span class="o">=</span> <span class="n">rememberLazyListState</span><span class="p">()</span>
 
