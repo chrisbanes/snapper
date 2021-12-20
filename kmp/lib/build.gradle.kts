@@ -18,9 +18,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api(compose.runtime)
                 api(compose.foundation)
-                api(compose.material)
+                implementation(libs.napier)
             }
         }
 
@@ -32,6 +31,7 @@ kotlin {
 
         val androidMain by getting {
             dependencies {
+                api(compose.material)
                 api("androidx.appcompat:appcompat:1.2.0")
                 api("androidx.core:core-ktx:1.3.1")
             }
@@ -45,6 +45,7 @@ kotlin {
 
         val desktopMain by getting {
             dependencies {
+                api(compose.material)
                 api(compose.preview)
             }
         }
@@ -63,7 +64,7 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
