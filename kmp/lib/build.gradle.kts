@@ -25,28 +25,18 @@ kotlin {
 
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test"))
+                api(libs.junit)
+                api(libs.truth)
+                api(compose("org.jetbrains.compose.ui:ui-test-junit4"))
             }
         }
 
-        val androidMain by getting {
-            dependencies {
-                api(compose.material)
-                api("androidx.appcompat:appcompat:1.2.0")
-                api("androidx.core:core-ktx:1.3.1")
-            }
-        }
-
-        val androidTest by getting {
-            dependencies {
-                implementation("junit:junit:4.13")
-            }
-        }
+        val androidMain by getting
+        val androidTest by getting
 
         val desktopMain by getting {
             dependencies {
-                api(compose.material)
-                api(compose.preview)
+                implementation(compose.desktop.currentOs)
             }
         }
 
@@ -61,6 +51,11 @@ android {
     defaultConfig {
         minSdk = 24
         targetSdk = 31
+    }
+
+    packagingOptions {
+        resources.pickFirsts += "/META-INF/AL2.0"
+        resources.pickFirsts += "/META-INF/LGPL2.1"
     }
 
     compileOptions {

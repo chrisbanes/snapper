@@ -80,7 +80,7 @@ subprojects {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { compile ->
         kotlinOptions {
             // Treat all Kotlin warnings as errors
-            allWarningsAsErrors = true
+            // allWarningsAsErrors = true
             // Set JVM target to 11
             jvmTarget = "11"
             // Allow use of @OptIn
