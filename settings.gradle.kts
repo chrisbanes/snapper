@@ -14,20 +14,33 @@
  * limitations under the License.
  */
 
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    }
+}
+
 plugins {
-    id 'com.gradle.enterprise' version '3.5'
+    id("com.gradle.enterprise") version "3.5"
 }
 
 gradleEnterprise {
     buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
+        termsOfServiceUrl = "https://gradle.com/terms-of-service"
+        termsOfServiceAgree = "yes"
     }
 }
 
-include ':lib'
-include ':internal-testutils'
-include ':sample'
+include(":lib")
+include(":internal-testutils")
+include(":sample")
+
+include(":kmp:lib")
+include(":kmp:android")
+include(":kmp:desktop")
 
 // Enable Gradle's version catalog support
 // https://docs.gradle.org/current/userguide/platforms.html
