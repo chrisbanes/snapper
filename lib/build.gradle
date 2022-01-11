@@ -83,7 +83,6 @@ android {
 
 dependencies {
     api libs.compose.foundation.foundation
-    implementation libs.napier
 
     // ======================
     // Test dependencies

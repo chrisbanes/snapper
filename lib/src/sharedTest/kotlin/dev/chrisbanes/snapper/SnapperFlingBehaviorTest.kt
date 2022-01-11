@@ -25,7 +25,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.google.common.truth.Truth.assertThat
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import org.junit.Rule
 import org.junit.Test
@@ -158,8 +157,6 @@ abstract class SnapperFlingBehaviorTest(
         // Now re-enable the clock advancement and let the fling animation run
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
-
-        lazyListState.logVisibleItems()
 
         // ...and assert that we now laid out from page 1
         lazyListState.assertCurrentItem(minIndex = 1, offset = 0)
@@ -322,14 +319,6 @@ private fun LazyListState.isScrolledToEnd(): Boolean {
     }
     return false
 }
-
-private fun LazyListState.logVisibleItems() = Napier.d(
-    message = {
-        "Visible Items. " + layoutInfo.visibleItemsInfo.joinToString { it.log() }
-    }
-)
-
-private fun LazyListItemInfo.log(): String = "[i:$index,o:$offset,s:$size]"
 
 private fun LazyListState.assertCurrentItem(
     index: Int,
