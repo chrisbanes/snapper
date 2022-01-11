@@ -80,5 +80,8 @@ package dev.chrisbanes.snapper {
     property public abstract int size;
   }
 
+  public final class SnapperLogKt {
+  }
+
 }
 
