@@ -46,7 +46,7 @@ import dev.chrisbanes.internal.swipeAcrossCenterWithVelocity
  */
 @OptIn(ExperimentalSnapperApi::class) // SnapFlingBehavior is currently experimental
 abstract class BaseSnapperFlingLazyRowTest(
-    private val maxScrollDistanceDp: Float,
+    maxScrollDistanceDp: Float,
     private val contentPadding: PaddingValues,
     // We don't use the Dp type due to https://youtrack.jetbrains.com/issue/KT-35523
     private val itemSpacingDp: Int,

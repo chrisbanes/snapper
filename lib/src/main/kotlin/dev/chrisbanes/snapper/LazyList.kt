@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import io.github.aakira.napier.Napier
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -107,7 +106,7 @@ fun rememberLazyListSnapperLayoutInfo(
  * See [SnapOffsets] for provided values.
  * @param endContentPadding The amount of content padding on the end edge of the lazy list
  * in pixels (end/bottom depending on the scrolling direction).
-*/
+ */
 @ExperimentalSnapperApi
 class LazyListSnapperLayoutInfo(
     private val lazyListState: LazyListState,
@@ -215,15 +214,13 @@ class LazyListSnapperLayoutInfo(
             }
         }
 
-        Napier.d(
-            message = {
-                "current item: $curr, " +
-                    "distancePerChild: $distancePerItem, " +
-                    "maximumFlingDistance: $maximumFlingDistance, " +
-                    "flingDistance: $flingDistance, " +
-                    "indexDelta: $indexDelta"
-            }
-        )
+        SnapperLog.d {
+            "current item: $curr, " +
+                "distancePerChild: $distancePerItem, " +
+                "maximumFlingDistance: $maximumFlingDistance, " +
+                "flingDistance: $flingDistance, " +
+                "indexDelta: $indexDelta"
+        }
 
         return (curr.index + indexDelta).coerceIn(0, itemCount - 1)
     }

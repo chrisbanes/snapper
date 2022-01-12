@@ -36,12 +36,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.aakira.napier.DebugAntilog
-import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.math.absoluteValue
-
-private const val DebugLog = false
 
 @RequiresOptIn(message = "Snapper is experimental. The API may be changed in the future.")
 @Retention(AnnotationRetention.BINARY)
@@ -242,7 +238,7 @@ class SnapperFlingBehavior(
             return initialVelocity
         }
 
-        Napier.d(message = { "initialVelocity: $initialVelocity" })
+        SnapperLog.d { "performFling. initialVelocity: $initialVelocity" }
 
         val maxFlingDistance = maximumFlingDistance(layoutInfo)
         require(maxFlingDistance > 0) {
@@ -266,14 +262,12 @@ class SnapperFlingBehavior(
         val initialItem = layoutInfo.currentItem ?: return initialVelocity
 
         if (initialItem.index == index && layoutInfo.distanceToIndexSnap(initialItem.index) == 0) {
-            Napier.d(
-                message = {
-                    "Skipping fling: already at target. " +
-                        "vel:$initialVelocity, " +
-                        "initial item: $initialItem, " +
-                        "target: $index"
-                }
-            )
+            SnapperLog.d {
+                "flingToIndex. Skipping fling, already at target. " +
+                    "vel:$initialVelocity, " +
+                    "initial item: $initialItem, " +
+                    "target: $index"
+            }
             return consumeVelocityIfNotAtScrollEdge(initialVelocity)
         }
 
@@ -316,25 +310,21 @@ class SnapperFlingBehavior(
     ): Float {
         // If we're already at the target + snap offset, skip
         if (initialItem.index == targetIndex && layoutInfo.distanceToIndexSnap(initialItem.index) == 0) {
-            Napier.d(
-                message = {
-                    "Skipping decay: already at target. " +
-                        "vel:$initialVelocity, " +
-                        "current item: $initialItem, " +
-                        "target: $targetIndex"
-                }
-            )
-            return consumeVelocityIfNotAtScrollEdge(initialVelocity)
-        }
-
-        Napier.d(
-            message = {
-                "Performing decay fling. " +
+            SnapperLog.d {
+                "performDecayFling. Skipping decay, already at target. " +
                     "vel:$initialVelocity, " +
                     "current item: $initialItem, " +
                     "target: $targetIndex"
             }
-        )
+            return consumeVelocityIfNotAtScrollEdge(initialVelocity)
+        }
+
+        SnapperLog.d {
+            "Performing decay fling. " +
+                "vel:$initialVelocity, " +
+                "current item: $initialItem, " +
+                "target: $targetIndex"
+        }
 
         var velocityLeft = initialVelocity
         var lastValue = 0f
@@ -391,11 +381,9 @@ class SnapperFlingBehavior(
             animationTarget = null
         }
 
-        Napier.d(
-            message = {
-                "Decay fling finished. Distance: $lastValue. Final vel: $velocityLeft"
-            }
-        )
+        SnapperLog.d {
+            "Decay fling finished. Distance: $lastValue. Final vel: $velocityLeft"
+        }
 
         if (needSpringAfter) {
             // The needSpringAfter flag is enabled, so start a spring to the target using the
@@ -411,14 +399,12 @@ class SnapperFlingBehavior(
         targetIndex: Int,
         initialVelocity: Float = 0f,
     ): Float {
-        Napier.d(
-            message = {
-                "Performing spring. " +
-                    "vel:$initialVelocity, " +
-                    "initial item: $initialItem, " +
-                    "target: $targetIndex"
-            }
-        )
+        SnapperLog.d {
+            "performSpringFling. " +
+                "vel:$initialVelocity, " +
+                "initial item: $initialItem, " +
+                "target: $targetIndex"
+        }
 
         var velocityLeft = when {
             // Only use the initialVelocity if it is in the correct direction
@@ -463,11 +449,9 @@ class SnapperFlingBehavior(
             animationTarget = null
         }
 
-        Napier.d(
-            message = {
-                "Spring fling finished. Distance: $lastValue. Final vel: $velocityLeft"
-            }
-        )
+        SnapperLog.d {
+            "Spring fling finished. Distance: $lastValue. Final vel: $velocityLeft"
+        }
 
         return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
@@ -480,13 +464,11 @@ class SnapperFlingBehavior(
         targetIndex: Int,
         scrollBy: (pixels: Float) -> Float,
     ): Boolean {
-        Napier.d(
-            message = {
-                "scroll tick. " +
-                    "vel:$velocity, " +
-                    "current item: $currentItem"
-            }
-        )
+        SnapperLog.d {
+            "scroll tick. " +
+                "vel:$velocity, " +
+                "current item: $currentItem"
+        }
 
         // Calculate the 'snap back'. If the returned value is 0, we don't need to do anything.
         val snapBackAmount = calculateSnapBack(velocity, currentItem, targetIndex)
@@ -494,14 +476,12 @@ class SnapperFlingBehavior(
         if (snapBackAmount != 0) {
             // If we've scrolled to/past the item, stop the animation. We may also need to
             // 'snap back' to the item as we may have scrolled past it
-            Napier.d(
-                message = {
-                    "Scrolled past item. " +
-                        "vel:$velocity, " +
-                        "current item: $currentItem} " +
-                        "target:$targetIndex"
-                }
-            )
+            SnapperLog.d {
+                "Scrolled past item. " +
+                    "vel:$velocity, " +
+                    "current item: $currentItem} " +
+                    "target:$targetIndex"
+            }
             scrollBy(snapBackAmount.toFloat())
             return true
         }
@@ -518,14 +498,12 @@ class SnapperFlingBehavior(
 
         val flingDistance = calculateTargetValue(0f, velocity)
 
-        Napier.d(
-            message = {
-                "canDecayBeyondCurrentItem. " +
-                    "initialVelocity: $velocity, " +
-                    "flingDistance: $flingDistance, " +
-                    "current item: $currentItem"
-            }
-        )
+        SnapperLog.d {
+            "canDecayBeyondCurrentItem. " +
+                "initialVelocity: $velocity, " +
+                "flingDistance: $flingDistance, " +
+                "current item: $currentItem"
+        }
 
         return if (velocity < 0) {
             // backwards, towards 0
@@ -567,13 +545,5 @@ class SnapperFlingBehavior(
         }
         // Else we return 0 to consume the remaining velocity
         return 0f
-    }
-
-    private companion object {
-        init {
-            if (DebugLog) {
-                Napier.base(DebugAntilog(defaultTag = "SnapFlingBehavior"))
-            }
-        }
     }
 }
