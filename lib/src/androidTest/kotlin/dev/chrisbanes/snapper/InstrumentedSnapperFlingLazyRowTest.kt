@@ -53,9 +53,14 @@ class InstrumentedSnapperFlingLazyRowTest(
         fun data() = parameterizedParams()
             // maxScrollDistanceDp
             .combineWithParameters(
-                // We add 4dp on to cater for itemSpacing
+                // We add 4dp on to cater for item spacing
                 1 * (ItemSize.value + 4),
                 4 * (ItemSize.value + 4),
+                // We also test without adding the item spacing. Key use cases like
+                // Accompanist Pager do not add the item spacing so we need to ensure things
+                // work as expected without it.
+                1 * ItemSize.value,
+                4 * ItemSize.value,
             )
             // contentPadding
             .combineWithParameters(
