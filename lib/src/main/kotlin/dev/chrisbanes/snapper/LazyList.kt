@@ -31,10 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.truncate
 
 /**
  * Create and remember a snapping [FlingBehavior] to be used with [LazyListState].
@@ -169,60 +170,52 @@ class LazyListSnapperLayoutInfo(
             return curr.index
         }
 
+        val distanceToCurrent = distanceToIndexSnap(curr.index)
+        val distanceToNext = distanceToIndexSnap(curr.index + 1)
+
+        if (abs(velocity) < 0.5f) {
+            // If we don't have a velocity, target whichever item is closer
+            return when {
+                distanceToCurrent.absoluteValue < distanceToNext.absoluteValue -> curr.index
+                else -> curr.index + 1
+            }.coerceIn(0, itemCount - 1)
+        }
+
+        // Otherwise we calculate using the velocity
         val flingDistance = decayAnimationSpec.calculateTargetValue(0f, velocity)
             .coerceIn(-maximumFlingDistance, maximumFlingDistance)
-
-        val distanceNext = distanceToIndexSnap(curr.index + 1)
-        val distanceCurrent = distanceToIndexSnap(curr.index)
-
-        // If the fling doesn't reach the next snap point (in the fling direction), we try
-        // and snap depending on which snap point is closer to the current scroll position
-        if (
-            (flingDistance >= 0 && flingDistance < distanceNext) ||
-            (flingDistance < 0 && flingDistance > distanceCurrent)
-        ) {
-            return if (distanceNext < -distanceCurrent) {
-                (curr.index + 1).coerceIn(0, itemCount - 1)
-            } else {
-                curr.index
+            .let { distance ->
+                // It's likely that the user has already scrolled an amount before the fling
+                // has been started. We compensate for that by removing the scrolled distance
+                // from the calculated fling distance. This is necessary so that we don't fling
+                // past the max fling distance.
+                if (velocity < 0) {
+                    (distance + distanceToNext).coerceAtMost(0f)
+                } else {
+                    (distance + distanceToCurrent).coerceAtLeast(0f)
+                }
             }
-        }
 
-        // forwards, toward index + 1, backwards towards index
-        val distanceToNextSnap = if (velocity > 0) distanceNext else distanceCurrent
-
-        /**
-         * We calculate the index delta by dividing the fling distance by the average
-         * scroll per child.
-         *
-         * We take the current item offset into account by subtracting `distanceToNextSnap`
-         * from the fling distance. This is then applied as an extra index delta below.
-         */
-        val indexDelta = truncate(
-            (flingDistance - distanceToNextSnap) / distancePerItem
-        ).let {
-            // As we removed the `distanceToNextSnap` from the fling distance, we need to calculate
-            // whether we need to take that into account...
-            if (velocity > 0) {
-                // If we're flinging forward, distanceToNextSnap represents the scroll distance
-                // to index + 1, so we need to add that (1) to the calculate delta
-                it.toInt() + 1
-            } else {
-                // If we're going backwards, distanceToNextSnap represents the scroll distance
-                // to the snap point of the current index, so there's nothing to do
-                it.toInt()
-            }
-        }
+        val flingIndexDelta = flingDistance / distancePerItem
+        val currentItemOffsetRatio = distanceToCurrent / distancePerItem
 
         SnapperLog.d {
             "current item: $curr, " +
-                "distancePerChild: $distancePerItem, " +
-                "maximumFlingDistance: $maximumFlingDistance, " +
-                "flingDistance: $flingDistance, " +
-                "indexDelta: $indexDelta"
+                "current item offset: ${"%.3f".format(currentItemOffsetRatio)}, " +
+                "distancePerItem: $distancePerItem, " +
+                "maximumFlingDistance: ${"%.3f".format(maximumFlingDistance)}, " +
+                "flingDistance: ${"%.3f".format(flingDistance)}, " +
+                "flingIndexDelta: ${"%.3f".format(flingIndexDelta)}"
         }
 
-        return (curr.index + indexDelta).coerceIn(0, itemCount - 1)
+        // Our target index, using the fling distance from the current item. We round the value
+        // which results in flings rounding towards the (relative) infinity.
+        // The key use case for this is to support short + fast flings. These could result in a
+        // fling distance of ~70% of the item distance (example). The rounding ensures that
+        // we target the next page.
+        return (curr.index + flingIndexDelta - currentItemOffsetRatio)
+            .roundToInt()
+            .coerceIn(0, itemCount - 1)
     }
 
     /**
