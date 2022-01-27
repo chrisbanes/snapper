@@ -85,6 +85,10 @@ subprojects {
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
             // Enable default methods in interfaces
             freeCompilerArgs += "-Xjvm-default=all"
+            // Enable explicit API mode for library compiles
+            if (!compile.name.containsIgnoreCase('test')) {
+                freeCompilerArgs += "-Xexplicit-api=strict"
+            }
         }
     }
 
