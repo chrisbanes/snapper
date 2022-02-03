@@ -16,6 +16,7 @@
 
 package dev.chrisbanes.snapper.sample
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,9 +27,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import dev.chrisbanes.snapper.ExperimentalSnapperApi
+import dev.chrisbanes.snapper.SnapOffsets
 import dev.chrisbanes.snapper.rememberSnapperFlingBehavior
 
 internal val LazyRowSamples = listOf(
@@ -44,6 +47,8 @@ private fun LazyRowSample() {
     LazyRow(
         state = lazyListState,
         flingBehavior = rememberSnapperFlingBehavior(
+            snapOffsetForItem = SnapOffsets.Start,
+            snapItemsCount = 4,
             lazyListState = lazyListState,
             // We need to provide the unresolved end value, so use Ltr
             endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
@@ -52,12 +57,13 @@ private fun LazyRowSample() {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
-        items(20) { index ->
+        items(50) { index ->
             ImageItem(
                 text = "$index",
                 modifier = Modifier
                     .width(160.dp)
                     .aspectRatio(3 / 4f)
+                    .border(1.dp, if (index % 4 == 0) Color.Blue else Color.Red)
             )
         }
     }

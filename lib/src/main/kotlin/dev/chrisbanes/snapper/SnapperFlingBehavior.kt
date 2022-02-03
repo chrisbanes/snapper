@@ -75,6 +75,7 @@ object SnapperFlingBehaviorDefaults {
 @ExperimentalSnapperApi
 @Composable
 fun rememberSnapperFlingBehavior(
+    snapItemsCount: Int,
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
@@ -84,8 +85,10 @@ fun rememberSnapperFlingBehavior(
     decayAnimationSpec,
     springAnimationSpec,
     maximumFlingDistance,
+    snapItemsCount
 ) {
     SnapperFlingBehavior(
+        snapItemsCount = snapItemsCount,
         layoutInfo = layoutInfo,
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
@@ -219,6 +222,7 @@ object SnapOffsets {
 @ExperimentalSnapperApi
 class SnapperFlingBehavior(
     private val layoutInfo: SnapperLayoutInfo,
+    private val snapItemsCount: Int,
     private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
@@ -385,6 +389,10 @@ class SnapperFlingBehavior(
             "Decay fling finished. Distance: $lastValue. Final vel: $velocityLeft"
         }
 
+        if (snapItemsCount != 1 && !needSpringAfter && layoutInfo.currentItem?.let { it.index % snapItemsCount == 0  && it.offset == 0} == false) {
+            needSpringAfter = true
+        }
+
         if (needSpringAfter) {
             // The needSpringAfter flag is enabled, so start a spring to the target using the
             // remaining velocity
@@ -523,6 +531,7 @@ class SnapperFlingBehavior(
         currentItem: SnapperLayoutItemInfo,
         targetIndex: Int,
     ): Int = when {
+        snapItemsCount != 1 -> 0
         // forwards
         initialVelocity > 0 && currentItem.index == targetIndex -> {
             layoutInfo.distanceToIndexSnap(currentItem.index)

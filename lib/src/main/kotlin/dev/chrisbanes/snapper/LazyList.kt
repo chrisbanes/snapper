@@ -60,15 +60,18 @@ fun rememberSnapperFlingBehavior(
     lazyListState: LazyListState,
     snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int = SnapOffsets.Center,
     endContentPadding: Dp = 0.dp,
+    snapItemsCount: Int = 1,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
     maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = rememberSnapperFlingBehavior(
     layoutInfo = rememberLazyListSnapperLayoutInfo(
         lazyListState = lazyListState,
+        snapItemsCount = snapItemsCount,
         snapOffsetForItem = snapOffsetForItem,
         endContentPadding = endContentPadding
     ),
+    snapItemsCount = snapItemsCount,
     decayAnimationSpec = decayAnimationSpec,
     springAnimationSpec = springAnimationSpec,
     maximumFlingDistance = maximumFlingDistance
@@ -87,12 +90,14 @@ fun rememberSnapperFlingBehavior(
 @Composable
 fun rememberLazyListSnapperLayoutInfo(
     lazyListState: LazyListState,
+    snapItemsCount: Int = 1,
     snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int = SnapOffsets.Center,
     endContentPadding: Dp = 0.dp,
-): LazyListSnapperLayoutInfo = remember(lazyListState, snapOffsetForItem) {
+): LazyListSnapperLayoutInfo = remember(lazyListState, snapOffsetForItem, snapItemsCount) {
     LazyListSnapperLayoutInfo(
         lazyListState = lazyListState,
         snapOffsetForItem = snapOffsetForItem,
+        snapItemsCount = snapItemsCount
     )
 }.apply {
     this.endContentPadding = with(LocalDensity.current) { endContentPadding.roundToPx() }
@@ -112,8 +117,28 @@ fun rememberLazyListSnapperLayoutInfo(
 class LazyListSnapperLayoutInfo(
     private val lazyListState: LazyListState,
     private val snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int,
+    private val snapItemsCount: Int,
     endContentPadding: Int = 0,
 ) : SnapperLayoutInfo() {
+    private fun Int.minIndexToSnap(): Int {
+        var indexToSnap = -1
+        var firstItem: SnapperLayoutItemInfo? = null
+        for (visibleItem in visibleItems.asIterable()) {
+            if (firstItem == null) firstItem = visibleItem
+            if (visibleItem.index % snapItemsCount == 0) {
+                indexToSnap = visibleItem.index
+                break
+            }
+        }
+        indexToSnap = when {
+            indexToSnap == -1 -> (this / snapItemsCount) * snapItemsCount
+            indexToSnap != firstItem?.index -> indexToSnap - snapItemsCount
+            else -> indexToSnap
+        }
+
+        return indexToSnap
+    }
+
     override val startScrollOffset: Int = 0
 
     internal var endContentPadding: Int by mutableStateOf(endContentPadding)
@@ -132,7 +157,7 @@ class LazyListSnapperLayoutInfo(
 
     override fun distanceToIndexSnap(index: Int): Int {
         val itemInfo = visibleItems.firstOrNull { it.index == index }
-        if (itemInfo != null) {
+        if (snapItemsCount == 1 && itemInfo != null) {
             // If we have the item visible, we can calculate using the offset. Woop.
             return itemInfo.offset - snapOffsetForItem(this, itemInfo)
         }
@@ -163,59 +188,46 @@ class LazyListSnapperLayoutInfo(
         maximumFlingDistance: Float,
     ): Int {
         val curr = currentItem ?: return -1
+        val indexToSnap = curr.index.minIndexToSnap()
 
         val distancePerItem = estimateDistancePerItem()
         if (distancePerItem <= 0) {
             // If we don't have a valid distance, return the current item
-            return curr.index
+            return indexToSnap
         }
 
-        val distanceToCurrent = distanceToIndexSnap(curr.index)
-        val distanceToNext = distanceToIndexSnap(curr.index + 1)
-
-        if (abs(velocity) < 0.5f) {
-            // If we don't have a velocity, target whichever item is closer
-            return when {
-                distanceToCurrent.absoluteValue < distanceToNext.absoluteValue -> curr.index
-                else -> curr.index + 1
-            }.coerceIn(0, itemCount - 1)
-        }
-
-        // Otherwise we calculate using the velocity
         val flingDistance = decayAnimationSpec.calculateTargetValue(0f, velocity)
             .coerceIn(-maximumFlingDistance, maximumFlingDistance)
-            .let { distance ->
-                // It's likely that the user has already scrolled an amount before the fling
-                // has been started. We compensate for that by removing the scrolled distance
-                // from the calculated fling distance. This is necessary so that we don't fling
-                // past the max fling distance.
-                if (velocity < 0) {
-                    (distance + distanceToNext).coerceAtMost(0f)
-                } else {
-                    (distance + distanceToCurrent).coerceAtLeast(0f)
-                }
+
+        val distanceNext = (indexToSnap + snapItemsCount - curr.index) * distancePerItem
+        val distanceCurrent = (curr.index - indexToSnap) * distancePerItem
+
+        // If the fling doesn't reach the next snap point (in the fling direction), we try
+        // and snap depending on which snap point is closer to the current scroll position
+        if (
+            (flingDistance >= 0 && flingDistance < distanceNext / 2) ||
+            (flingDistance < 0 && -flingDistance < distanceCurrent / 2)
+        ) {
+            return if (distanceNext + curr.offset < distanceCurrent - curr.offset) {
+                (indexToSnap + snapItemsCount).coerceIn(0, (itemCount / snapItemsCount) * snapItemsCount)
+            } else {
+                indexToSnap
             }
-
-        val flingIndexDelta = flingDistance / distancePerItem
-        val currentItemOffsetRatio = distanceToCurrent / distancePerItem
-
-        SnapperLog.d {
-            "current item: $curr, " +
-                "current item offset: ${"%.3f".format(currentItemOffsetRatio)}, " +
-                "distancePerItem: $distancePerItem, " +
-                "maximumFlingDistance: ${"%.3f".format(maximumFlingDistance)}, " +
-                "flingDistance: ${"%.3f".format(flingDistance)}, " +
-                "flingIndexDelta: ${"%.3f".format(flingIndexDelta)}"
         }
 
-        // Our target index, using the fling distance from the current item. We round the value
-        // which results in flings rounding towards the (relative) infinity.
-        // The key use case for this is to support short + fast flings. These could result in a
-        // fling distance of ~70% of the item distance (example). The rounding ensures that
-        // we target the next page.
-        return (curr.index + flingIndexDelta - currentItemOffsetRatio)
-            .roundToInt()
-            .coerceIn(0, itemCount - 1)
+        return if (flingDistance < 0) {
+            val shifting = (flingDistance + (curr.index - indexToSnap - snapItemsCount) * distancePerItem - curr.offset) / distancePerItem
+            var targetIndex = (shifting.toInt() / snapItemsCount) * snapItemsCount
+            val snapOffset = shifting - targetIndex
+            if (snapOffset > -snapItemsCount / 2f) targetIndex += snapItemsCount
+            indexToSnap + targetIndex
+        } else {
+            val shifting = ((curr.index - indexToSnap) * distancePerItem + flingDistance - curr.offset) / distancePerItem
+            var targetIndex = (shifting.toInt() / snapItemsCount) * snapItemsCount
+            val snapOffset = shifting - targetIndex
+            if (snapOffset > snapItemsCount / 2f) targetIndex += snapItemsCount
+            indexToSnap + targetIndex
+        }
     }
 
     /**
