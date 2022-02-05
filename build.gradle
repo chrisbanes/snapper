@@ -51,9 +51,11 @@ allprojects {
         google()
         mavenCentral()
 
+        maven { url 'https://maven.pkg.jetbrains.space/public/p/compose/dev' }
+
         def composeSnapshot = libs.versions.composesnapshot.get()
         if (composeSnapshot.length() > 1) {
-            maven { url "https://androidx.dev/snapshots/builds/$composeSnapshot/artifacts/repository/" }
+            maven { url 'https://androidx.dev/snapshots/builds/$composeSnapshot/artifacts/repository/' }
         }
     }
 }
@@ -78,9 +80,9 @@ subprojects {
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach { compile ->
         kotlinOptions {
             // Treat all Kotlin warnings as errors
-            allWarningsAsErrors = true
-            // Set JVM target to 1.8
-            jvmTarget = "1.8"
+            // allWarningsAsErrors = true
+            // Set JVM target to 11
+            jvmTarget = "11"
             // Allow use of @OptIn
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
             // Enable default methods in interfaces

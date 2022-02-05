@@ -1,11 +1,11 @@
 [versions]
-compose = "1.0.3"
+compose = "1.0.5"
 composesnapshot = "-" # a single character = no snapshot
 
 gradlePlugin = "7.0.2"
 
 ktlint = "0.42.1"
-kotlin = "1.5.30"
+kotlin = "1.5.31"
 coroutines = "1.5.2"
 
 androidxtest = "1.4.0"
