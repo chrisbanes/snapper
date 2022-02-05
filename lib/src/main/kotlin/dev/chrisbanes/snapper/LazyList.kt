@@ -196,26 +196,28 @@ public class LazyListSnapperLayoutInfo(
                 }
             }
 
-        val flingIndexDelta = flingDistance / distancePerItem
-        val currentItemOffsetRatio = distanceToCurrent / distancePerItem
+        val flingIndexDelta = flingDistance / distancePerItem.toDouble()
+        val currentItemOffsetRatio = distanceToCurrent / distancePerItem.toDouble()
 
-        SnapperLog.d {
-            "current item: $curr, " +
-                "current item offset: ${"%.3f".format(currentItemOffsetRatio)}, " +
-                "distancePerItem: $distancePerItem, " +
-                "maximumFlingDistance: ${"%.3f".format(maximumFlingDistance)}, " +
-                "flingDistance: ${"%.3f".format(flingDistance)}, " +
-                "flingIndexDelta: ${"%.3f".format(flingIndexDelta)}"
-        }
+        // The index offset from the current index. We round this value which results in
+        // flings rounding towards the (relative) infinity. The key use case for this is to
+        // support short + fast flings. These could result in a fling distance of ~70% of the
+        // item distance (example). The rounding ensures that we target the next page.
+        val indexOffset = (flingIndexDelta - currentItemOffsetRatio).roundToInt()
 
-        // Our target index, using the fling distance from the current item. We round the value
-        // which results in flings rounding towards the (relative) infinity.
-        // The key use case for this is to support short + fast flings. These could result in a
-        // fling distance of ~70% of the item distance (example). The rounding ensures that
-        // we target the next page.
-        return (curr.index + flingIndexDelta - currentItemOffsetRatio)
-            .roundToInt()
-            .coerceIn(0, itemCount - 1)
+        return (curr.index + indexOffset).coerceIn(0, itemCount - 1)
+            .also { result ->
+                SnapperLog.d {
+                    "determineTargetIndex. " +
+                        "result: $result, " +
+                        "current item: $curr, " +
+                        "current item offset: ${"%.3f".format(currentItemOffsetRatio)}, " +
+                        "distancePerItem: $distancePerItem, " +
+                        "maximumFlingDistance: ${"%.3f".format(maximumFlingDistance)}, " +
+                        "flingDistance: ${"%.3f".format(flingDistance)}, " +
+                        "flingIndexDelta: ${"%.3f".format(flingIndexDelta)}"
+                }
+            }
     }
 
     /**

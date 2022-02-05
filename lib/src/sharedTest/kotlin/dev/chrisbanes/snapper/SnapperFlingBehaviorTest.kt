@@ -78,54 +78,69 @@ abstract class SnapperFlingBehaviorTest(
     }
 
     @Test
-    fun swipeToEndAndBack() {
-        val lazyListState = LazyListState()
+    fun swipeForwardAndBackFromZero() = swipeToEndAndBack(
+        initialIndex = 0,
+        count = 4
+    )
+
+    @Test
+    fun swipeForwardAndBackFromLargeIndex() = swipeToEndAndBack(
+        initialIndex = Int.MAX_VALUE / 2,
+        count = Int.MAX_VALUE
+    )
+
+    private fun swipeToEndAndBack(initialIndex: Int, count: Int) {
+        val lazyListState = LazyListState(firstVisibleItemIndex = initialIndex)
         val snappingFlingBehavior = createSnapFlingBehavior(lazyListState)
         setTestContent(
             flingBehavior = snappingFlingBehavior,
             lazyListState = lazyListState,
-            count = 4,
+            count = count,
         )
+
+        var lastItemIndex = lazyListState.currentItem.index
 
         // Now swipe towards start, from page 0 to page 1 and assert the layout
         rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(minIndex = 1, offset = 0)
+        lazyListState.assertCurrentItem(minIndex = lastItemIndex + 1)
+        lastItemIndex = lazyListState.currentItem.index
 
         // Repeat for 1 -> 2
         rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(minIndex = 2, offset = 0)
+        lazyListState.assertCurrentItem(minIndex = lastItemIndex + 1)
+        lastItemIndex = lazyListState.currentItem.index
 
         // Repeat for 2 -> 3
         rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(index = 3, offset = 0)
+        lazyListState.assertCurrentItem(minIndex = lastItemIndex + 1)
+        lastItemIndex = lazyListState.currentItem.index
 
-        // Swipe past the last item. We shouldn't move
-        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
-        rule.waitForIdle()
-        lazyListState.assertCurrentItem(index = 3, offset = 0)
+        // Swipe past the last item (if it is the last item). We shouldn't move
+        if (count - initialIndex == 4) {
+            rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+            rule.waitForIdle()
+            lazyListState.assertCurrentItem(index = lastItemIndex, offset = 0)
+        }
 
         // Swipe back from 3 -> 2
         rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(maxIndex = 2, offset = 0)
+        lazyListState.assertCurrentItem(maxIndex = (lastItemIndex - 1).coerceAtLeast(0))
+        lastItemIndex = lazyListState.currentItem.index
 
         // Swipe back from 2 -> 1
         rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(maxIndex = 1, offset = 0)
+        lazyListState.assertCurrentItem(maxIndex = (lastItemIndex - 1).coerceAtLeast(0))
+        lastItemIndex = lazyListState.currentItem.index
 
         // Swipe back from 1 -> 0
         rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
-        lazyListState.assertCurrentItem(index = 0, offset = 0)
-
-        // Swipe past the first item. We shouldn't move
-        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
-        rule.waitForIdle()
-        lazyListState.assertCurrentItem(index = 0, offset = 0)
+        lazyListState.assertCurrentItem(maxIndex = (lastItemIndex - 1).coerceAtLeast(0))
     }
 
     @Test
@@ -333,7 +348,8 @@ private fun LazyListState.assertCurrentItem(
     if (isScrolledToEnd()) return
 
     currentItem.let {
-        assertThat(it.index).isIn(minIndex..maxIndex)
+        assertThat(it.index).isAtLeast(minIndex)
+        assertThat(it.index).isAtMost(maxIndex)
         assertThat(it.offset).isEqualTo(offset)
     }
 }
