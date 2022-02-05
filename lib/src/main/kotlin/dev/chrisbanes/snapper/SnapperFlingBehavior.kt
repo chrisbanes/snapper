@@ -69,6 +69,10 @@ public object SnapperFlingBehaviorDefaults {
  * you can use [rememberLazyListSnapperLayoutInfo].
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
+ * @param snapIndex Block which returns the index to snap to. The block is provided with the
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
+ * Callers can override this value as they see fit. A common use case could be rounding up/down
+ * to achieve groupings of items.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
@@ -78,17 +82,20 @@ public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
     maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = remember(
     layoutInfo,
     decayAnimationSpec,
     springAnimationSpec,
     maximumFlingDistance,
+    snapIndex,
 ) {
     SnapperFlingBehavior(
         layoutInfo = layoutInfo,
         decayAnimationSpec = decayAnimationSpec,
         springAnimationSpec = springAnimationSpec,
+        snapIndex = snapIndex,
         maximumFlingDistance = maximumFlingDistance,
     )
 }
@@ -123,6 +130,11 @@ public abstract class SnapperLayoutInfo {
      * The item returned may not yet currently be snapped into the final position.
      */
     public abstract val currentItem: SnapperLayoutItemInfo?
+
+    /**
+     * The total count of items attached to the layout.
+     */
+    public abstract val totalItemsCount: Int
 
     /**
      * Calculate the desired target which should be scrolled to for the given [velocity].
@@ -213,15 +225,20 @@ public object SnapOffsets {
  * @param layoutInfo The [SnapperLayoutInfo] to use.
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
+ * @param snapIndex Block which returns the index to snap to. The block is provided with the
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
+ * Callers can override this value as they see fit. A common use case could be rounding up/down
+ * to achieve groupings of items.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
 @ExperimentalSnapperApi
 public class SnapperFlingBehavior(
     private val layoutInfo: SnapperLayoutInfo,
-    private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    private val snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
+    private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ) : FlingBehavior {
     /**
      * The target item index for any on-going animations.
@@ -245,14 +262,18 @@ public class SnapperFlingBehavior(
             "Distance returned by maximumFlingDistance should be greater than 0"
         }
 
-        return flingToIndex(
-            index = layoutInfo.determineTargetIndex(
-                velocity = initialVelocity,
-                decayAnimationSpec = decayAnimationSpec,
-                maximumFlingDistance = maxFlingDistance,
-            ),
-            initialVelocity = initialVelocity,
-        )
+        val targetIndex = layoutInfo.determineTargetIndex(
+            velocity = initialVelocity,
+            decayAnimationSpec = decayAnimationSpec,
+            maximumFlingDistance = maxFlingDistance,
+        ).let {
+            // If there is a provided snapIndex, let it transform the value
+            snapIndex?.invoke(layoutInfo, it) ?: it
+        }.also {
+            require(it in 0 until layoutInfo.totalItemsCount)
+        }
+
+        return flingToIndex(index = targetIndex, initialVelocity = initialVelocity)
     }
 
     private suspend fun ScrollScope.flingToIndex(

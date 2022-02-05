@@ -51,6 +51,10 @@ import kotlin.math.roundToInt
  * in dps (end/bottom depending on the scrolling direction).
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
+ * @param snapIndex Block which returns the index to snap to. The block is provided with the
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
+ * Callers can override this value as they see fit. A common use case could be rounding up/down
+ * to achieve groupings of items.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
@@ -62,6 +66,7 @@ public fun rememberSnapperFlingBehavior(
     endContentPadding: Dp = 0.dp,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
     maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = rememberSnapperFlingBehavior(
     layoutInfo = rememberLazyListSnapperLayoutInfo(
@@ -71,7 +76,8 @@ public fun rememberSnapperFlingBehavior(
     ),
     decayAnimationSpec = decayAnimationSpec,
     springAnimationSpec = springAnimationSpec,
-    maximumFlingDistance = maximumFlingDistance
+    maximumFlingDistance = maximumFlingDistance,
+    snapIndex = snapIndex,
 )
 
 /**
@@ -122,6 +128,9 @@ public class LazyListSnapperLayoutInfo(
         get() = lazyListState.layoutInfo.viewportEndOffset - endContentPadding
 
     private val itemCount: Int get() = lazyListState.layoutInfo.totalItemsCount
+
+    override val totalItemsCount: Int
+        get() = lazyListState.layoutInfo.totalItemsCount
 
     override val currentItem: SnapperLayoutItemInfo?
         get() = visibleItems.lastOrNull { it.offset <= snapOffsetForItem(this, it) }
