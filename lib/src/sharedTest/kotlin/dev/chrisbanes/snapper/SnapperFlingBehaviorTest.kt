@@ -19,6 +19,7 @@ package dev.chrisbanes.snapper
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.node.Ref
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -279,6 +280,31 @@ abstract class SnapperFlingBehaviorTest(
         lazyListState.assertCurrentItem(index = 0, offset = 0)
     }
 
+    @Test
+    fun snapIndex() {
+        val lazyListState = LazyListState()
+        val snappedIndex = Ref<Int>()
+        val snappingFlingBehavior = createSnapFlingBehavior(
+            lazyListState = lazyListState,
+            snapIndex = { _, index ->
+                // We increase the calculated index by 3
+                (index + 3).also { snappedIndex.value = it }
+            }
+        )
+        setTestContent(
+            flingBehavior = snappingFlingBehavior,
+            lazyListState = lazyListState,
+            count = 10,
+        )
+
+        // Now swipe towards start, from page 0
+        rule.onNodeWithTag("0").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = snappedIndex.value!!)
+    }
+
     /**
      * Swipe across the center of the node. The major axis of the swipe is defined by the
      * overriding test.
@@ -312,6 +338,7 @@ abstract class SnapperFlingBehaviorTest(
 
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState,
+        snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
     ): SnapperFlingBehavior = SnapperFlingBehavior(
         layoutInfo = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
@@ -319,7 +346,8 @@ abstract class SnapperFlingBehaviorTest(
             snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),
-        maximumFlingDistance = { with(rule.density) { maxScrollDistanceDp.dp.toPx() } }
+        snapIndex = snapIndex,
+        maximumFlingDistance = { with(rule.density) { maxScrollDistanceDp.dp.toPx() } },
     )
 }
 
