@@ -70,9 +70,10 @@ public object SnapperFlingBehaviorDefaults {
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
- * Callers can override this value as they see fit. A common use case could be rounding up/down
- * to achieve groupings of items.
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index,
+ * taking the [maximumFlingDistance] into account. Callers can override this value to any
+ * valid index for the layout. A common use case could be rounding up/down to achieve snapping to
+ * groups of items.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
@@ -226,9 +227,10 @@ public object SnapOffsets {
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
- * Callers can override this value as they see fit. A common use case could be rounding up/down
- * to achieve groupings of items.
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index,
+ * taking the [maximumFlingDistance] into account. Callers can override this value to any
+ * valid index for the layout. A common use case could be rounding up/down to achieve snapping to
+ * groups of items.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
