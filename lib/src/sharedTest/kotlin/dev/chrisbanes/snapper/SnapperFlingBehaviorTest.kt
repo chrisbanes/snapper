@@ -284,11 +284,12 @@ abstract class SnapperFlingBehaviorTest(
     fun snapIndex() {
         val lazyListState = LazyListState()
         val snappedIndex = Ref<Int>()
+        var snapIndex = 0
         val snappingFlingBehavior = createSnapFlingBehavior(
             lazyListState = lazyListState,
-            snapIndex = { _, index ->
+            snapIndex = { _, _ ->
                 // We increase the calculated index by 3
-                (index + 3).also { snappedIndex.value = it }
+                snapIndex.also { snappedIndex.value = it }
             }
         )
         setTestContent(
@@ -297,12 +298,23 @@ abstract class SnapperFlingBehaviorTest(
             count = 10,
         )
 
-        // Now swipe towards start, from page 0
-        rule.onNodeWithTag("0").swipeAcrossCenter(-MediumSwipeDistance)
+        snapIndex = 5
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
-
         // ...and assert that we now laid out from our increased snap index
-        lazyListState.assertCurrentItem(index = snappedIndex.value!!)
+        lazyListState.assertCurrentItem(index = 5)
+
+        snapIndex = 0
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 0)
+
+        snapIndex = 9
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 9)
     }
 
     /**
