@@ -41,25 +41,25 @@ import kotlin.math.absoluteValue
 
 @RequiresOptIn(message = "Snapper is experimental. The API may be changed in the future.")
 @Retention(AnnotationRetention.BINARY)
-annotation class ExperimentalSnapperApi
+public annotation class ExperimentalSnapperApi
 
 /**
  * Default values used for [SnapperFlingBehavior] & [rememberSnapperFlingBehavior].
  */
 @ExperimentalSnapperApi
-object SnapperFlingBehaviorDefaults {
+public object SnapperFlingBehaviorDefaults {
     /**
      * [AnimationSpec] used as the default value for the `snapAnimationSpec` parameter on
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
      */
-    val SpringAnimationSpec: AnimationSpec<Float> = spring(stiffness = 400f)
+    public val SpringAnimationSpec: AnimationSpec<Float> = spring(stiffness = 400f)
 
     /**
      * The default implementation for the `maximumFlingDistance` parameter of
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior], which does not limit
      * the fling distance.
      */
-    val MaximumFlingDistance: (SnapperLayoutInfo) -> Float = { Float.MAX_VALUE }
+    public val MaximumFlingDistance: (SnapperLayoutInfo) -> Float = { Float.MAX_VALUE }
 }
 
 /**
@@ -74,7 +74,7 @@ object SnapperFlingBehaviorDefaults {
  */
 @ExperimentalSnapperApi
 @Composable
-fun rememberSnapperFlingBehavior(
+public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
@@ -98,31 +98,31 @@ fun rememberSnapperFlingBehavior(
  * to determine how to fling.
  */
 @ExperimentalSnapperApi
-abstract class SnapperLayoutInfo {
+public abstract class SnapperLayoutInfo {
     /**
      * The start offset of where items can be scrolled to. This value should only include
      * scrollable regions. For example this should not include fixed content padding.
      * For most layouts, this will be 0.
      */
-    abstract val startScrollOffset: Int
+    public abstract val startScrollOffset: Int
 
     /**
      * The end offset of where items can be scrolled to. This value should only include
      * scrollable regions. For example this should not include fixed content padding.
      * For most layouts, this will the width of the container, minus content padding.
      */
-    abstract val endScrollOffset: Int
+    public abstract val endScrollOffset: Int
 
     /**
      * A sequence containing the currently visible items in the layout.
      */
-    abstract val visibleItems: Sequence<SnapperLayoutItemInfo>
+    public abstract val visibleItems: Sequence<SnapperLayoutItemInfo>
 
     /**
      * The current item which covers the desired snap point, or null if there is no item.
      * The item returned may not yet currently be snapped into the final position.
      */
-    abstract val currentItem: SnapperLayoutItemInfo?
+    public abstract val currentItem: SnapperLayoutItemInfo?
 
     /**
      * Calculate the desired target which should be scrolled to for the given [velocity].
@@ -131,7 +131,7 @@ abstract class SnapperLayoutInfo {
      * @param decayAnimationSpec The decay fling animation spec.
      * @param maximumFlingDistance The maximum distance in pixels which should be scrolled.
      */
-    abstract fun determineTargetIndex(
+    public abstract fun determineTargetIndex(
         velocity: Float,
         decayAnimationSpec: DecayAnimationSpec<Float>,
         maximumFlingDistance: Float,
@@ -146,26 +146,26 @@ abstract class SnapperLayoutInfo {
      *
      * If a precise calculation can not be found, a realistic estimate is acceptable.
      */
-    abstract fun distanceToIndexSnap(index: Int): Int
+    public abstract fun distanceToIndexSnap(index: Int): Int
 
     /**
      * Returns true if the layout has some scroll range remaining to scroll towards the start.
      */
-    abstract fun canScrollTowardsStart(): Boolean
+    public abstract fun canScrollTowardsStart(): Boolean
 
     /**
      * Returns true if the layout has some scroll range remaining to scroll towards the end.
      */
-    abstract fun canScrollTowardsEnd(): Boolean
+    public abstract fun canScrollTowardsEnd(): Boolean
 }
 
 /**
  * Contains information about a single item in a scrolling layout.
  */
-abstract class SnapperLayoutItemInfo {
-    abstract val index: Int
-    abstract val offset: Int
-    abstract val size: Int
+public abstract class SnapperLayoutItemInfo {
+    public abstract val index: Int
+    public abstract val offset: Int
+    public abstract val size: Int
 
     override fun toString(): String {
         return "SnapperLayoutItemInfo(index=$index, offset=$offset, size=$size)"
@@ -178,19 +178,19 @@ abstract class SnapperLayoutItemInfo {
  */
 @ExperimentalSnapperApi
 @Suppress("unused") // public vals which aren't used in the project
-object SnapOffsets {
+public object SnapOffsets {
     /**
      * Snap offset which results in the start edge of the item, snapping to the start scrolling
      * edge of the lazy list.
      */
-    val Start: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int =
+    public val Start: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int =
         { layout, _ -> layout.startScrollOffset }
 
     /**
      * Snap offset which results in the item snapping in the center of the scrolling viewport
      * of the lazy list.
      */
-    val Center: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int = { layout, item ->
+    public val Center: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int = { layout, item ->
         layout.startScrollOffset + (layout.endScrollOffset - layout.startScrollOffset - item.size) / 2
     }
 
@@ -198,7 +198,7 @@ object SnapOffsets {
      * Snap offset which results in the end edge of the item, snapping to the end scrolling
      * edge of the lazy list.
      */
-    val End: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int = { layout, item ->
+    public val End: (SnapperLayoutInfo, SnapperLayoutItemInfo) -> Int = { layout, item ->
         layout.endScrollOffset - item.size
     }
 }
@@ -217,7 +217,7 @@ object SnapOffsets {
  * The returned value should be > 0.
  */
 @ExperimentalSnapperApi
-class SnapperFlingBehavior(
+public class SnapperFlingBehavior(
     private val layoutInfo: SnapperLayoutInfo,
     private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
@@ -226,7 +226,7 @@ class SnapperFlingBehavior(
     /**
      * The target item index for any on-going animations.
      */
-    var animationTarget: Int? by mutableStateOf(null)
+    public var animationTarget: Int? by mutableStateOf(null)
         private set
 
     override suspend fun ScrollScope.performFling(
