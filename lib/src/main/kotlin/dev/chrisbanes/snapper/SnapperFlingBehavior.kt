@@ -271,21 +271,28 @@ public class SnapperFlingBehavior(
             return consumeVelocityIfNotAtScrollEdge(initialVelocity)
         }
 
-        return if (decayAnimationSpec.canDecayBeyondCurrentItem(initialVelocity, initialItem)) {
-            // If the decay fling can scroll past the current item, fling with decay
-            performDecayFling(
+        var velocityLeft = initialVelocity
+
+        if (decayAnimationSpec.canDecayBeyondCurrentItem(initialVelocity, initialItem)) {
+            // If the decay fling can scroll past the current item, start with a decayed fling
+            velocityLeft = performDecayFling(
                 initialItem = initialItem,
                 targetIndex = index,
-                initialVelocity = initialVelocity,
-            )
-        } else {
-            // Otherwise we 'spring' to current/next item
-            performSpringFling(
-                initialItem = initialItem,
-                targetIndex = index,
-                initialVelocity = initialVelocity,
+                initialVelocity = velocityLeft,
             )
         }
+
+        val currentItem = layoutInfo.currentItem!!
+        if (currentItem.index != index || layoutInfo.distanceToIndexSnap(index) != 0) {
+            // If we're not at the target index yet, spring to it
+            velocityLeft = performSpringFling(
+                initialItem = currentItem,
+                targetIndex = index,
+                initialVelocity = velocityLeft,
+            )
+        }
+
+        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
     }
 
     /**
@@ -331,7 +338,6 @@ public class SnapperFlingBehavior(
 
         // We can only fling-then-spring if we're flinging >= 2 items...
         val canSpringThenFling = flingThenSpring && abs(targetIndex - initialItem.index) >= 2
-        var needSpringAfter = false
 
         try {
             // Update the animationTarget
@@ -361,12 +367,10 @@ public class SnapperFlingBehavior(
                 if (isRunning && canSpringThenFling) {
                     // If we're still running and fling-then-spring is enabled, check to see
                     // if we're at the 1 item width away (in the relevant direction). If we are,
-                    // set the spring-after flag and cancel the current decay
+                    // cancel the current decay and let flingToIndex() start a spring
                     if (velocity > 0 && currentItem.index == targetIndex - 1) {
-                        needSpringAfter = true
                         cancelAnimation()
                     } else if (velocity < 0 && currentItem.index == targetIndex) {
-                        needSpringAfter = true
                         cancelAnimation()
                     }
                 }
@@ -385,13 +389,7 @@ public class SnapperFlingBehavior(
             "Decay fling finished. Distance: $lastValue. Final vel: $velocityLeft"
         }
 
-        if (needSpringAfter) {
-            // The needSpringAfter flag is enabled, so start a spring to the target using the
-            // remaining velocity
-            return performSpringFling(layoutInfo.currentItem!!, targetIndex, velocityLeft)
-        }
-
-        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
+        return velocityLeft
     }
 
     private suspend fun ScrollScope.performSpringFling(
@@ -453,7 +451,7 @@ public class SnapperFlingBehavior(
             "Spring fling finished. Distance: $lastValue. Final vel: $velocityLeft"
         }
 
-        return consumeVelocityIfNotAtScrollEdge(velocityLeft)
+        return velocityLeft
     }
 
     /**
