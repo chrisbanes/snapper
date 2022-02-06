@@ -298,23 +298,40 @@ abstract class SnapperFlingBehaviorTest(
             count = 10,
         )
 
+        // Forward fling
         snapIndex = 5
         rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         // ...and assert that we now laid out from our increased snap index
         lazyListState.assertCurrentItem(index = 5)
 
+        // Backwards fling, but snapIndex is forward
+        snapIndex = 9
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 9)
+
+        // Backwards fling
         snapIndex = 0
         rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
         rule.waitForIdle()
         // ...and assert that we now laid out from our increased snap index
         lazyListState.assertCurrentItem(index = 0)
 
+        // Forward fling
         snapIndex = 9
         rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
         rule.waitForIdle()
         // ...and assert that we now laid out from our increased snap index
         lazyListState.assertCurrentItem(index = 9)
+
+        // Forward fling, but snapIndex is backwards
+        snapIndex = 5
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 5)
     }
 
     /**
