@@ -52,12 +52,9 @@ import kotlin.math.roundToInt
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index,
- * taking the [maximumFlingDistance] into account. Callers can override this value to any
- * valid index for the layout. A common use case could be rounding up/down to achieve snapping to
- * groups of items.
- * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
- * The returned value should be > 0.
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
+ * Callers can override this value to any valid index for the layout. Some common use cases include
+ * limiting the fling distance, and rounding up/down to achieve snapping to groups of items.
  */
 @ExperimentalSnapperApi
 @Composable
@@ -68,7 +65,45 @@ public fun rememberSnapperFlingBehavior(
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
     snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
-    maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+): SnapperFlingBehavior = rememberSnapperFlingBehavior(
+    layoutInfo = rememberLazyListSnapperLayoutInfo(
+        lazyListState = lazyListState,
+        snapOffsetForItem = snapOffsetForItem,
+        endContentPadding = endContentPadding
+    ),
+    decayAnimationSpec = decayAnimationSpec,
+    springAnimationSpec = springAnimationSpec,
+    snapIndex = snapIndex,
+)
+
+/**
+ * Create and remember a snapping [FlingBehavior] to be used with [LazyListState].
+ *
+ * This is a convenience function for using [rememberLazyListSnapperLayoutInfo] and
+ * [rememberSnapperFlingBehavior]. If you require access to the layout info, you can safely use
+ * those APIs directly.
+ *
+ * @param lazyListState The [LazyListState] to update.
+ * @param snapOffsetForItem Block which returns which offset the given item should 'snap' to.
+ * See [SnapOffsets] for provided values.
+ * @param endContentPadding The amount of content padding on the end edge of the lazy list
+ * in dps (end/bottom depending on the scrolling direction).
+ * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+ * @param springAnimationSpec The animation spec to use when snapping.
+ * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
+ * The returned value should be > 0.
+ */
+@Composable
+@Deprecated("maximumFlingDistance has been replaced with snapIndex")
+@Suppress("DEPRECATION")
+@ExperimentalSnapperApi
+public fun rememberSnapperFlingBehavior(
+    lazyListState: LazyListState,
+    snapOffsetForItem: (layoutInfo: SnapperLayoutInfo, item: SnapperLayoutItemInfo) -> Int = SnapOffsets.Center,
+    endContentPadding: Dp = 0.dp,
+    decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+    springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    maximumFlingDistance: (SnapperLayoutInfo) -> Float,
 ): SnapperFlingBehavior = rememberSnapperFlingBehavior(
     layoutInfo = rememberLazyListSnapperLayoutInfo(
         lazyListState = lazyListState,
@@ -78,7 +113,6 @@ public fun rememberSnapperFlingBehavior(
     decayAnimationSpec = decayAnimationSpec,
     springAnimationSpec = springAnimationSpec,
     maximumFlingDistance = maximumFlingDistance,
-    snapIndex = snapIndex,
 )
 
 /**

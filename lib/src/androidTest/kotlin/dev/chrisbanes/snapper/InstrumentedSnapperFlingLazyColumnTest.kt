@@ -28,12 +28,12 @@ import org.junit.runners.Parameterized
  */
 @RunWith(Parameterized::class)
 class InstrumentedSnapperFlingLazyColumnTest(
-    maxScrollDistanceDp: Float,
+    snapIndexDelta: Int,
     contentPadding: PaddingValues,
     itemSpacingDp: Int,
     reverseLayout: Boolean,
 ) : BaseSnapperFlingLazyColumnTest(
-    maxScrollDistanceDp,
+    snapIndexDelta,
     contentPadding,
     itemSpacingDp,
     reverseLayout,
@@ -44,23 +44,14 @@ class InstrumentedSnapperFlingLazyColumnTest(
          */
         @JvmStatic
         @Parameterized.Parameters(
-            name = "maxScrollDistanceDp={0}," +
+            name = "snapIndexDelta={0}," +
                 "contentPadding={1}," +
                 "itemSpacing={2}," +
                 "reverseLayout={3}"
         )
         fun data() = parameterizedParams()
-            // maxScrollDistanceDp
-            .combineWithParameters(
-                // We add 4dp on to cater for item spacing
-                1 * (ItemSize.value + 4),
-                4 * (ItemSize.value + 4),
-                // We also test without adding the item spacing. Key use cases like
-                // Accompanist Pager do not add the item spacing so we need to ensure things
-                // work as expected without it.
-                1 * ItemSize.value,
-                4 * ItemSize.value,
-            )
+            // snapIndexDelta
+            .combineWithParameters(1, 4)
             // contentPadding
             .combineWithParameters(
                 PaddingValues(bottom = 32.dp), // Alignment.Top

@@ -41,7 +41,7 @@ internal val ItemSize = 200.dp
 
 @OptIn(ExperimentalSnapperApi::class) // Pager is currently experimental
 abstract class SnapperFlingBehaviorTest(
-    private val maxScrollDistanceDp: Float,
+    private val snapIndexDelta: Int,
 ) {
     @get:Rule
     val rule = createComposeRule()
@@ -202,14 +202,14 @@ abstract class SnapperFlingBehaviorTest(
         )
 
         assertThat(lazyListState.isScrollInProgress).isTrue()
-        assertThat(snappingFlingBehavior.animationTarget).isEqualTo(1)
+        assertThat(snappingFlingBehavior.animationTarget).isNotNull()
 
         // Now re-enable the clock advancement and let the snap animation run
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
 
         // ...and assert that we now laid out from page 1
-        lazyListState.assertCurrentItem(index = 1, offset = 0)
+        lazyListState.assertCurrentItem(minIndex = 1, offset = 0)
     }
 
     @Test
@@ -375,8 +375,14 @@ abstract class SnapperFlingBehaviorTest(
             snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),
-        snapIndex = snapIndex,
-        maximumFlingDistance = { with(rule.density) { maxScrollDistanceDp.dp.toPx() } },
+        snapIndex = snapIndex ?: { layout, index ->
+            val currentIndex = layout.currentItem!!.index
+            val forwardFling = index > currentIndex
+            when {
+                forwardFling -> currentIndex + snapIndexDelta
+                else -> currentIndex + 1 - snapIndexDelta
+            }.coerceIn(0, layout.totalItemsCount - 1)
+        },
     )
 }
 
