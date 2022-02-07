@@ -67,7 +67,7 @@ public fun rememberSnapperFlingBehavior(
     endContentPadding: Dp = 0.dp,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
+    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
     maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = rememberSnapperFlingBehavior(
     layoutInfo = rememberLazyListSnapperLayoutInfo(

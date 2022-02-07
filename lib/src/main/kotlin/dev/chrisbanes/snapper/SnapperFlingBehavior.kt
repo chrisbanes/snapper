@@ -60,6 +60,12 @@ public object SnapperFlingBehaviorDefaults {
      * the fling distance.
      */
     public val MaximumFlingDistance: (SnapperLayoutInfo) -> Float = { Float.MAX_VALUE }
+
+    /**
+     * The default implementation for the `snapIndex` parameter of
+     * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
+     */
+    public val SnapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = { _, index -> index }
 }
 
 /**
@@ -83,7 +89,7 @@ public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
+    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
     maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = remember(
     layoutInfo,
@@ -239,7 +245,7 @@ public class SnapperFlingBehavior(
     private val layoutInfo: SnapperLayoutInfo,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    private val snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
+    private val snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
     private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ) : FlingBehavior {
     /**
@@ -269,8 +275,8 @@ public class SnapperFlingBehavior(
             decayAnimationSpec = decayAnimationSpec,
             maximumFlingDistance = maxFlingDistance,
         ).let {
-            // If there is a provided snapIndex, let it transform the value
-            snapIndex?.invoke(layoutInfo, it) ?: it
+            // Let the snapIndex block transform the value
+            snapIndex(layoutInfo, it)
         }.also {
             require(it in 0 until layoutInfo.totalItemsCount)
         }
