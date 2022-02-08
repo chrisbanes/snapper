@@ -2,9 +2,9 @@
 compose = "1.0.3"
 composesnapshot = "-" # a single character = no snapshot
 
-gradlePlugin = "7.0.2"
+agp = "7.1.1"
 
-ktlint = "0.42.1"
+ktlint = "0.43.2"
 kotlin = "1.5.30"
 coroutines = "1.5.2"
 
@@ -23,8 +23,8 @@ compose-material-material = { module = "androidx.compose.material:material", ver
 compose-material-iconsext = { module = "androidx.compose.material:material-icons-extended", version.ref = "compose" }
 compose-animation-animation = { module = "androidx.compose.animation:animation", version.ref = "compose" }
 
-android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "gradlePlugin" }
-gradleMavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.17.0"
+android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+gradleMavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.18.0"
 metalavaGradle = "me.tylerbwong.gradle:metalava-gradle:0.1.9"
 
 coil = "io.coil-kt:coil-compose:1.4.0"
@@ -47,6 +47,4 @@ androidx-test-orchestrator = { module = "androidx.test:orchestrator", version.re
 
 junit = "junit:junit:4.13"
 truth = "com.google.truth:truth:1.1.2"
-robolectric = "org.robolectric:robolectric:4.5.1"
-
-android-tools-build-gradle = { module = "com.android.tools.build:gradle", version.ref = "gradlePlugin" }
+robolectric = "org.robolectric:robolectric:4.7.3"
