@@ -77,10 +77,9 @@ public object SnapperFlingBehaviorDefaults {
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index,
- * taking the [maximumFlingDistance] into account. Callers can override this value to any
- * valid index for the layout. A common use case could be rounding up/down to achieve snapping to
- * groups of items.
+ * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
+ * Callers can override this value to any valid index for the layout. Some common use cases include
+ * limiting the fling distance, and rounding up/down to achieve snapping to groups of items.
  */
 @ExperimentalSnapperApi
 @Composable
@@ -88,7 +87,7 @@ public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
+    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int,
 ): SnapperFlingBehavior = remember(
     layoutInfo,
     decayAnimationSpec,
@@ -110,18 +109,45 @@ public fun rememberSnapperFlingBehavior(
  * you can use [rememberLazyListSnapperLayoutInfo].
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
+ */
+@ExperimentalSnapperApi
+@Composable
+public inline fun rememberSnapperFlingBehavior(
+    layoutInfo: SnapperLayoutInfo,
+    decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+    springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+): SnapperFlingBehavior {
+    // You might be wondering this is function exists rather than a default value for snapIndex
+    // above. It was done to remove overload ambiguity with the maximumFlingDistance overload
+    // below. When that function is removed, we also remove this function and move to a default
+    // param value.
+    return rememberSnapperFlingBehavior(
+        layoutInfo = layoutInfo,
+        decayAnimationSpec = decayAnimationSpec,
+        springAnimationSpec = springAnimationSpec,
+        snapIndex = SnapperFlingBehaviorDefaults.SnapIndex
+    )
+}
+
+/**
+ * Create and remember a snapping [FlingBehavior] to be used with the given [layoutInfo].
+ *
+ * @param layoutInfo The [SnapperLayoutInfo] to use. For lazy layouts,
+ * you can use [rememberLazyListSnapperLayoutInfo].
+ * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+ * @param springAnimationSpec The animation spec to use when snapping.
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
 @Suppress("DEPRECATION")
 @ExperimentalSnapperApi
-@Deprecated("maximumFlingDistance has been replaced with snapIndex")
+@Deprecated("The maximumFlingDistance parameter has been replaced with snapIndex")
 @Composable
 public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    maximumFlingDistance: (SnapperLayoutInfo) -> Float,
+    maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
 ): SnapperFlingBehavior = remember(
     layoutInfo,
     decayAnimationSpec,
@@ -296,13 +322,13 @@ public class SnapperFlingBehavior private constructor(
      * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
      * The returned value should be > 0.
      */
-    @Deprecated("maximumFlingDistance has been deprecated")
+    @Deprecated("The maximumFlingDistance parameter has been replaced with snapIndex")
     @Suppress("DEPRECATION")
     public constructor(
         layoutInfo: SnapperLayoutInfo,
         decayAnimationSpec: DecayAnimationSpec<Float>,
         springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-        maximumFlingDistance: (SnapperLayoutInfo) -> Float,
+        maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     ) : this(
         layoutInfo = layoutInfo,
         decayAnimationSpec = decayAnimationSpec,
