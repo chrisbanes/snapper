@@ -91,9 +91,6 @@ public fun rememberSnapperFlingBehavior(
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  */
-// You might be wondering this is function exists rather than a default value for snapIndex
-// above. It was done to remove overload ambiguity with the maximumFlingDistance overload below.
-// When that function is removed, we also remove this function and move to a default param value.
 @ExperimentalSnapperApi
 @Composable
 public fun rememberSnapperFlingBehavior(
