@@ -19,6 +19,7 @@ package dev.chrisbanes.snapper
 import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.ui.node.Ref
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -40,7 +41,7 @@ internal val ItemSize = 200.dp
 
 @OptIn(ExperimentalSnapperApi::class) // Pager is currently experimental
 abstract class SnapperFlingBehaviorTest(
-    private val maxScrollDistanceDp: Float,
+    private val snapIndexDelta: Int,
 ) {
     @get:Rule
     val rule = createComposeRule()
@@ -201,14 +202,14 @@ abstract class SnapperFlingBehaviorTest(
         )
 
         assertThat(lazyListState.isScrollInProgress).isTrue()
-        assertThat(snappingFlingBehavior.animationTarget).isEqualTo(1)
+        assertThat(snappingFlingBehavior.animationTarget).isNotNull()
 
         // Now re-enable the clock advancement and let the snap animation run
         rule.mainClock.autoAdvance = true
         rule.waitForIdle()
 
         // ...and assert that we now laid out from page 1
-        lazyListState.assertCurrentItem(index = 1, offset = 0)
+        lazyListState.assertCurrentItem(minIndex = 1, offset = 0)
     }
 
     @Test
@@ -279,6 +280,60 @@ abstract class SnapperFlingBehaviorTest(
         lazyListState.assertCurrentItem(index = 0, offset = 0)
     }
 
+    @Test
+    fun snapIndex() {
+        val lazyListState = LazyListState()
+        val snappedIndex = Ref<Int>()
+        var snapIndex = 0
+        val snappingFlingBehavior = createSnapFlingBehavior(
+            lazyListState = lazyListState,
+            snapIndex = { _, _, _ ->
+                // We increase the calculated index by 3
+                snapIndex.also { snappedIndex.value = it }
+            }
+        )
+        setTestContent(
+            flingBehavior = snappingFlingBehavior,
+            lazyListState = lazyListState,
+            count = 10,
+        )
+
+        // Forward fling
+        snapIndex = 5
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 5)
+
+        // Backwards fling, but snapIndex is forward
+        snapIndex = 9
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 9)
+
+        // Backwards fling
+        snapIndex = 0
+        rule.onNodeWithTag("layout").swipeAcrossCenter(MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 0)
+
+        // Forward fling
+        snapIndex = 9
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 9)
+
+        // Forward fling, but snapIndex is backwards
+        snapIndex = 5
+        rule.onNodeWithTag("layout").swipeAcrossCenter(-MediumSwipeDistance)
+        rule.waitForIdle()
+        // ...and assert that we now laid out from our increased snap index
+        lazyListState.assertCurrentItem(index = 5)
+    }
+
     /**
      * Swipe across the center of the node. The major axis of the swipe is defined by the
      * overriding test.
@@ -312,6 +367,7 @@ abstract class SnapperFlingBehaviorTest(
 
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState,
+        snapIndex: ((SnapperLayoutInfo, currentIndex: Int, targetIndex: Int) -> Int)? = null,
     ): SnapperFlingBehavior = SnapperFlingBehavior(
         layoutInfo = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
@@ -319,7 +375,11 @@ abstract class SnapperFlingBehaviorTest(
             snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),
-        maximumFlingDistance = { with(rule.density) { maxScrollDistanceDp.dp.toPx() } }
+        snapIndex = snapIndex ?: { layout, currentIndex, targetIndex ->
+            targetIndex
+                .coerceIn(currentIndex - snapIndexDelta, currentIndex + snapIndexDelta)
+                .coerceIn(0, layout.totalItemsCount - 1)
+        },
     )
 }
 

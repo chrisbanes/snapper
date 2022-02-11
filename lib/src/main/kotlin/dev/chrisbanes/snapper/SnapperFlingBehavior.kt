@@ -59,7 +59,75 @@ public object SnapperFlingBehaviorDefaults {
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior], which does not limit
      * the fling distance.
      */
+    @Deprecated("The maximumFlingDistance parameter has been deprecated.")
     public val MaximumFlingDistance: (SnapperLayoutInfo) -> Float = { Float.MAX_VALUE }
+
+    /**
+     * The default implementation for the `snapIndex` parameter of
+     * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
+     */
+    public val SnapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int = { _, _, targetIndex -> targetIndex }
+}
+
+/**
+ * Create and remember a snapping [FlingBehavior] to be used with the given [layoutInfo].
+ *
+ * @param layoutInfo The [SnapperLayoutInfo] to use. For lazy layouts,
+ * you can use [rememberLazyListSnapperLayoutInfo].
+ * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+ * @param springAnimationSpec The animation spec to use when snapping.
+ * @param snapIndex Block which returns the index to snap to. The block is provided with the
+ * [SnapperLayoutInfo], the index where the fling started, and the index which Snapper has
+ * determined is the correct target index. Callers can override this value to any valid index
+ * for the layout. Some common use cases include limiting the fling distance, and rounding up/down
+ * to achieve snapping to groups of items.
+ */
+@ExperimentalSnapperApi
+@Composable
+public fun rememberSnapperFlingBehavior(
+    layoutInfo: SnapperLayoutInfo,
+    decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+    springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int,
+): SnapperFlingBehavior = remember(
+    layoutInfo,
+    decayAnimationSpec,
+    springAnimationSpec,
+    snapIndex,
+) {
+    SnapperFlingBehavior(
+        layoutInfo = layoutInfo,
+        decayAnimationSpec = decayAnimationSpec,
+        springAnimationSpec = springAnimationSpec,
+        snapIndex = snapIndex,
+    )
+}
+
+/**
+ * Create and remember a snapping [FlingBehavior] to be used with the given [layoutInfo].
+ *
+ * @param layoutInfo The [SnapperLayoutInfo] to use. For lazy layouts,
+ * you can use [rememberLazyListSnapperLayoutInfo].
+ * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+ * @param springAnimationSpec The animation spec to use when snapping.
+ */
+@ExperimentalSnapperApi
+@Composable
+public inline fun rememberSnapperFlingBehavior(
+    layoutInfo: SnapperLayoutInfo,
+    decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
+    springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+): SnapperFlingBehavior {
+    // You might be wondering this is function exists rather than a default value for snapIndex
+    // above. It was done to remove overload ambiguity with the maximumFlingDistance overload
+    // below. When that function is removed, we also remove this function and move to a default
+    // param value.
+    return rememberSnapperFlingBehavior(
+        layoutInfo = layoutInfo,
+        decayAnimationSpec = decayAnimationSpec,
+        springAnimationSpec = springAnimationSpec,
+        snapIndex = SnapperFlingBehaviorDefaults.SnapIndex
+    )
 }
 
 /**
@@ -72,7 +140,9 @@ public object SnapperFlingBehaviorDefaults {
  * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
  * The returned value should be > 0.
  */
+@Suppress("DEPRECATION")
 @ExperimentalSnapperApi
+@Deprecated("The maximumFlingDistance parameter has been replaced with snapIndex")
 @Composable
 public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
@@ -123,6 +193,11 @@ public abstract class SnapperLayoutInfo {
      * The item returned may not yet currently be snapped into the final position.
      */
     public abstract val currentItem: SnapperLayoutItemInfo?
+
+    /**
+     * The total count of items attached to the layout.
+     */
+    public abstract val totalItemsCount: Int
 
     /**
      * Calculate the desired target which should be scrolled to for the given [velocity].
@@ -209,20 +284,61 @@ public object SnapOffsets {
  *
  * Note: the default parameter value for [decayAnimationSpec] is different to the value used in
  * [rememberSnapperFlingBehavior], due to not being able to access composable functions.
- *
- * @param layoutInfo The [SnapperLayoutInfo] to use.
- * @param decayAnimationSpec The decay animation spec to use for decayed flings.
- * @param springAnimationSpec The animation spec to use when snapping.
- * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
- * The returned value should be > 0.
  */
 @ExperimentalSnapperApi
-public class SnapperFlingBehavior(
+public class SnapperFlingBehavior private constructor(
     private val layoutInfo: SnapperLayoutInfo,
-    private val maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
-    private val springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+    private val springAnimationSpec: AnimationSpec<Float>,
+    private val snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int,
+    private val maximumFlingDistance: (SnapperLayoutInfo) -> Float,
 ) : FlingBehavior {
+    /**
+     * @param layoutInfo The [SnapperLayoutInfo] to use.
+     * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+     * @param springAnimationSpec The animation spec to use when snapping.
+     * @param snapIndex Block which returns the index to snap to. The block is provided with the
+     * [SnapperLayoutInfo], the index where the fling started, and the index which Snapper has
+     * determined is the correct target index. Callers can override this value to any valid index
+     * for the layout. Some common use cases include limiting the fling distance, and rounding
+     * up/down to achieve snapping to groups of items.
+     */
+    public constructor(
+        layoutInfo: SnapperLayoutInfo,
+        decayAnimationSpec: DecayAnimationSpec<Float>,
+        springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+        snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
+    ) : this(
+        layoutInfo = layoutInfo,
+        decayAnimationSpec = decayAnimationSpec,
+        springAnimationSpec = springAnimationSpec,
+        snapIndex = snapIndex,
+        // We still need to pass in a maximumFlingDistance value
+        maximumFlingDistance = @Suppress("DEPRECATION") SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+    )
+
+    /**
+     * @param layoutInfo The [SnapperLayoutInfo] to use.
+     * @param decayAnimationSpec The decay animation spec to use for decayed flings.
+     * @param springAnimationSpec The animation spec to use when snapping.
+     * @param maximumFlingDistance Block which returns the maximum fling distance in pixels.
+     * The returned value should be > 0.
+     */
+    @Deprecated("The maximumFlingDistance parameter has been replaced with snapIndex")
+    @Suppress("DEPRECATION")
+    public constructor(
+        layoutInfo: SnapperLayoutInfo,
+        decayAnimationSpec: DecayAnimationSpec<Float>,
+        springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
+        maximumFlingDistance: (SnapperLayoutInfo) -> Float = SnapperFlingBehaviorDefaults.MaximumFlingDistance,
+    ) : this(
+        layoutInfo = layoutInfo,
+        decayAnimationSpec = decayAnimationSpec,
+        springAnimationSpec = springAnimationSpec,
+        maximumFlingDistance = maximumFlingDistance,
+        snapIndex = SnapperFlingBehaviorDefaults.SnapIndex,
+    )
+
     /**
      * The target item index for any on-going animations.
      */
@@ -245,14 +361,23 @@ public class SnapperFlingBehavior(
             "Distance returned by maximumFlingDistance should be greater than 0"
         }
 
-        return flingToIndex(
-            index = layoutInfo.determineTargetIndex(
-                velocity = initialVelocity,
-                decayAnimationSpec = decayAnimationSpec,
-                maximumFlingDistance = maxFlingDistance,
-            ),
-            initialVelocity = initialVelocity,
-        )
+        val targetIndex = layoutInfo.determineTargetIndex(
+            velocity = initialVelocity,
+            decayAnimationSpec = decayAnimationSpec,
+            maximumFlingDistance = maxFlingDistance,
+        ).let { target ->
+            // Let the snapIndex block transform the value
+            val start = layoutInfo.currentItem!!.index.let { index ->
+                // If the user is flinging towards the index 0, we assume that the start item is
+                // actually the next item (towards infinity).
+                if (initialVelocity < 0) index + 1 else index
+            }
+            snapIndex(layoutInfo, start, target)
+        }.also {
+            require(it in 0 until layoutInfo.totalItemsCount)
+        }
+
+        return flingToIndex(index = targetIndex, initialVelocity = initialVelocity)
     }
 
     private suspend fun ScrollScope.flingToIndex(

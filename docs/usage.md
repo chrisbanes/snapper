@@ -102,28 +102,59 @@ LazyColumn(
 }
 ```
 
+## Customization of the target index
 
-## Controlling the maximum fling distance
+The `snapIndex` parameter allows customization of the index which Snapper which fling to
+after a user has started a fling.
 
-The `maximumFlingDistance` parameter allows customization of the maximum distance that a user can
-fling (and snap to).
+The block is given the [SnapperLayoutInfo][snapperlayoutinfo], the index where the fling started, and
+with the index which Snapper has determined is the correct index to fling, without the layout limits. 
+The block should return the index which Snapper should fling and snap to.
 
-Apps can provide a block which will be called once a fling has been started. The block is given 
-the [SnapperLayoutInfo][snapperlayoutinfo], if it needs to use the layout to determine 
-the distance.
+The following are some examples of what you can achieve with `snapIndex`.
 
-The following example sets the maximum fling distance to 3x the container width.
+### Controlling the maximum fling distance
+
+The following example sets the `snapIndex` so that the user can only fling up a maximum of 3 items:
 
 ``` kotlin
+val MaxItemFling = 3
+
 LazyRow(
     state = lazyListState,
     flingBehavior = rememberSnapperFlingBehavior(
         lazyListState = lazyListState,
-        maximumFlingDistance = { layoutInfo ->
-            val scrollLength = layoutInfo.endScrollOffset - layoutInfo.startScrollOffset
-            // Allow the user to scroll 3x the LazyRow 'width'
-            scrollLength * 3f
+        snapIndex = { layoutInfo, startIndex, targetIndex ->
+            targetIndex.coerceIn(startIndex - MaxItemFling, startIndex + MaxItemFling)
         }
+    ),
+) {
+    // content
+}
+```
+
+### Snapping groups
+
+The `snapIndex` parameter can also be used to achieve snapping to 'groups' of items.
+
+The following example provide a `snapIndex` block which snaps flings to groups of 3 items:
+
+``` kotlin
+val GroupSize = 3
+
+LazyRow(
+    state = lazyListState,
+    flingBehavior = rememberSnapperFlingBehavior(
+        lazyListState = lazyListState,
+        snapIndex = { _, _, targetIndex ->
+            val mod = targetIndex % GroupSize
+            if (mod > (GroupSize / 2)) {
+                // Round up towards infinity
+                GroupSize + targetIndex - mod
+            } else {
+                // Round down towards zero
+                targetIndex - mod
+            }
     ),
 ) {
     // content

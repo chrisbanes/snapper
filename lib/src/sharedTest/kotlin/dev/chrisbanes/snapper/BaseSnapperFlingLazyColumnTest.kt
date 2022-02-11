@@ -42,12 +42,12 @@ import dev.chrisbanes.internal.swipeAcrossCenterWithVelocity
  */
 @OptIn(ExperimentalSnapperApi::class) // SnapFlingBehavior is currently experimental
 abstract class BaseSnapperFlingLazyColumnTest(
-    maxScrollDistanceDp: Float,
+    snapIndexDelta: Int,
     private val contentPadding: PaddingValues,
     // We don't use the Dp type due to https://youtrack.jetbrains.com/issue/KT-35523
     private val itemSpacingDp: Int,
     private val reverseLayout: Boolean,
-) : SnapperFlingBehaviorTest(maxScrollDistanceDp) {
+) : SnapperFlingBehaviorTest(snapIndexDelta) {
 
     override val endContentPadding: Int
         get() = with(rule.density) { contentPadding.calculateBottomPadding().roundToPx() }
