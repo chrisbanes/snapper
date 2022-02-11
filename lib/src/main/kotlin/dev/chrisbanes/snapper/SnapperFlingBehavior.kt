@@ -66,7 +66,7 @@ public object SnapperFlingBehaviorDefaults {
      * The default implementation for the `snapIndex` parameter of
      * [rememberSnapperFlingBehavior] and [SnapperFlingBehavior].
      */
-    public val SnapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = { _, index -> index }
+    public val SnapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int = { _, _, targetIndex -> targetIndex }
 }
 
 /**
@@ -77,9 +77,10 @@ public object SnapperFlingBehaviorDefaults {
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
- * Callers can override this value to any valid index for the layout. Some common use cases include
- * limiting the fling distance, and rounding up/down to achieve snapping to groups of items.
+ * [SnapperLayoutInfo], the index where the fling started, and the index which Snapper has
+ * determined is the correct target index. Callers can override this value to any valid index
+ * for the layout. Some common use cases include limiting the fling distance, and rounding up/down
+ * to achieve snapping to groups of items.
  */
 @ExperimentalSnapperApi
 @Composable
@@ -87,7 +88,7 @@ public fun rememberSnapperFlingBehavior(
     layoutInfo: SnapperLayoutInfo,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int,
+    snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int,
 ): SnapperFlingBehavior = remember(
     layoutInfo,
     decayAnimationSpec,
@@ -289,7 +290,7 @@ public class SnapperFlingBehavior private constructor(
     private val layoutInfo: SnapperLayoutInfo,
     private val decayAnimationSpec: DecayAnimationSpec<Float>,
     private val springAnimationSpec: AnimationSpec<Float>,
-    private val snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int,
+    private val snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int,
     private val maximumFlingDistance: (SnapperLayoutInfo) -> Float,
 ) : FlingBehavior {
     /**
@@ -297,15 +298,16 @@ public class SnapperFlingBehavior private constructor(
      * @param decayAnimationSpec The decay animation spec to use for decayed flings.
      * @param springAnimationSpec The animation spec to use when snapping.
      * @param snapIndex Block which returns the index to snap to. The block is provided with the
-     * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
-     * Callers can override this value to any valid index for the layout. Some common use cases include
-     * limiting the fling distance, and rounding up/down to achieve snapping to groups of items.
+     * [SnapperLayoutInfo], the index where the fling started, and the index which Snapper has
+     * determined is the correct target index. Callers can override this value to any valid index
+     * for the layout. Some common use cases include limiting the fling distance, and rounding
+     * up/down to achieve snapping to groups of items.
      */
     public constructor(
         layoutInfo: SnapperLayoutInfo,
         decayAnimationSpec: DecayAnimationSpec<Float>,
         springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-        snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
+        snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int = SnapperFlingBehaviorDefaults.SnapIndex,
     ) : this(
         layoutInfo = layoutInfo,
         decayAnimationSpec = decayAnimationSpec,
@@ -363,9 +365,14 @@ public class SnapperFlingBehavior private constructor(
             velocity = initialVelocity,
             decayAnimationSpec = decayAnimationSpec,
             maximumFlingDistance = maxFlingDistance,
-        ).let {
+        ).let { target ->
             // Let the snapIndex block transform the value
-            snapIndex(layoutInfo, it)
+            val start = layoutInfo.currentItem!!.index.let { index ->
+                // If the user is flinging towards the index 0, we assume that the start item is
+                // actually the next item (towards infinity).
+                if (initialVelocity < 0) index + 1 else index
+            }
+            snapIndex(layoutInfo, start, target)
         }.also {
             require(it in 0 until layoutInfo.totalItemsCount)
         }

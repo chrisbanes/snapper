@@ -52,9 +52,10 @@ import kotlin.math.roundToInt
  * @param decayAnimationSpec The decay animation spec to use for decayed flings.
  * @param springAnimationSpec The animation spec to use when snapping.
  * @param snapIndex Block which returns the index to snap to. The block is provided with the
- * [SnapperLayoutInfo] and the index which Snapper has determined is the correct target index.
- * Callers can override this value to any valid index for the layout. Some common use cases include
- * limiting the fling distance, and rounding up/down to achieve snapping to groups of items.
+ * [SnapperLayoutInfo], the index where the fling started, and the index which Snapper has
+ * determined is the correct target index. Callers can override this value to any valid index
+ * for the layout. Some common use cases include limiting the fling distance, and rounding up/down
+ * to achieve snapping to groups of items.
  */
 @ExperimentalSnapperApi
 @Composable
@@ -64,7 +65,7 @@ public fun rememberSnapperFlingBehavior(
     endContentPadding: Dp = 0.dp,
     decayAnimationSpec: DecayAnimationSpec<Float> = rememberSplineBasedDecay(),
     springAnimationSpec: AnimationSpec<Float> = SnapperFlingBehaviorDefaults.SpringAnimationSpec,
-    snapIndex: (SnapperLayoutInfo, targetIndex: Int) -> Int,
+    snapIndex: (SnapperLayoutInfo, startIndex: Int, targetIndex: Int) -> Int,
 ): SnapperFlingBehavior = rememberSnapperFlingBehavior(
     layoutInfo = rememberLazyListSnapperLayoutInfo(
         lazyListState = lazyListState,

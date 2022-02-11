@@ -287,7 +287,7 @@ abstract class SnapperFlingBehaviorTest(
         var snapIndex = 0
         val snappingFlingBehavior = createSnapFlingBehavior(
             lazyListState = lazyListState,
-            snapIndex = { _, _ ->
+            snapIndex = { _, _, _ ->
                 // We increase the calculated index by 3
                 snapIndex.also { snappedIndex.value = it }
             }
@@ -367,7 +367,7 @@ abstract class SnapperFlingBehaviorTest(
 
     private fun createSnapFlingBehavior(
         lazyListState: LazyListState,
-        snapIndex: ((SnapperLayoutInfo, targetIndex: Int) -> Int)? = null,
+        snapIndex: ((SnapperLayoutInfo, currentIndex: Int, targetIndex: Int) -> Int)? = null,
     ): SnapperFlingBehavior = SnapperFlingBehavior(
         layoutInfo = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
@@ -375,13 +375,10 @@ abstract class SnapperFlingBehaviorTest(
             snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),
-        snapIndex = snapIndex ?: { layout, index ->
-            val currentIndex = layout.currentItem!!.index
-            val forwardFling = index > currentIndex
-            when {
-                forwardFling -> currentIndex + snapIndexDelta
-                else -> currentIndex + 1 - snapIndexDelta
-            }.coerceIn(0, layout.totalItemsCount - 1)
+        snapIndex = snapIndex ?: { layout, currentIndex, targetIndex ->
+            targetIndex
+                .coerceIn(currentIndex - snapIndexDelta, currentIndex + snapIndexDelta)
+                .coerceIn(0, layout.totalItemsCount - 1)
         },
     )
 }
