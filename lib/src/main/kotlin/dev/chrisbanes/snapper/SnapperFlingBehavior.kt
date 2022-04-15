@@ -361,18 +361,21 @@ public class SnapperFlingBehavior private constructor(
             "Distance returned by maximumFlingDistance should be greater than 0"
         }
 
+        val initialItem = layoutInfo.currentItem ?: return initialVelocity
+
         val targetIndex = layoutInfo.determineTargetIndex(
             velocity = initialVelocity,
             decayAnimationSpec = decayAnimationSpec,
             maximumFlingDistance = maxFlingDistance,
         ).let { target ->
             // Let the snapIndex block transform the value
-            val start = layoutInfo.currentItem!!.index.let { index ->
+            snapIndex(
+                layoutInfo,
                 // If the user is flinging towards the index 0, we assume that the start item is
                 // actually the next item (towards infinity).
-                if (initialVelocity < 0) index + 1 else index
-            }
-            snapIndex(layoutInfo, start, target)
+                if (initialVelocity < 0) initialItem.index + 1 else initialItem.index,
+                target,
+            )
         }.also {
             require(it in 0 until layoutInfo.totalItemsCount)
         }
@@ -407,7 +410,7 @@ public class SnapperFlingBehavior private constructor(
             )
         }
 
-        val currentItem = layoutInfo.currentItem!!
+        val currentItem = layoutInfo.currentItem ?: return initialVelocity
         if (currentItem.index != index || layoutInfo.distanceToIndexSnap(index) != 0) {
             // If we're not at the target index yet, spring to it
             velocityLeft = performSpringFling(
