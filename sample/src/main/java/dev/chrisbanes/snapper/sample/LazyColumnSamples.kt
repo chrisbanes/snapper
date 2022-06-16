@@ -37,15 +37,11 @@ internal val LazyColumnSamples = listOf(
 @Composable
 private fun LazyColumnSample() {
     val lazyListState = rememberLazyListState()
-    val contentPadding = PaddingValues(16.dp)
 
     LazyColumn(
         state = lazyListState,
-        flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = lazyListState,
-            endContentPadding = contentPadding.calculateBottomPadding(),
-        ),
-        contentPadding = contentPadding,
+        flingBehavior = rememberSnapperFlingBehavior(lazyListState = lazyListState),
+        contentPadding = PaddingValues(top = 200.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
