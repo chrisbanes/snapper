@@ -23,52 +23,6 @@ LazyRow(
 }
 ```
 
-## Content padding
-
-When setting content padding on `LazyRow` or `LazyColumn` it is important to supply that information
-to Snapper. Unfortunately `LazyListState` does not currently supply enough information for Snapper
-to calculate the scrollable region of the container, which is needed for the SnapOffsets feature above.
-
-We workaround this by apps supplying the the scrollable direction 'end' content padding which is 
-being used, via the `endContentPadding` parameter.
-
-=== "LazyRow"
-
-    ``` kotlin
-    val lazyListState = rememberLazyListState()
-    val contentPadding = PaddingValues(...)
-
-    LazyRow(
-        state = lazyListState,
-        flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = lazyListState,
-            // We need to provide the unresolved end value, so use Ltr
-            endContentPadding = contentPadding.calculateEndPadding(LayoutDirection.Ltr),
-        ),
-        contentPadding = contentPadding,
-    ) {
-        // content
-    }
-    ```
-
-=== "LazyColumn"
-
-    ``` kotlin
-    val lazyListState = rememberLazyListState()
-    val contentPadding = PaddingValues(...)
-
-    LazyColumn(
-        state = lazyListState,
-        flingBehavior = rememberSnapperFlingBehavior(
-            lazyListState = lazyListState,
-            endContentPadding = contentPadding.calculateBottomPadding(),
-        ),
-        contentPadding = contentPadding,
-    ) {
-        // content
-    }
-    ```
-
 ## Finding the 'current' item
 
 Most of the time apps will probably use the short-hand convenience function: 

@@ -49,9 +49,6 @@ abstract class BaseSnapperFlingLazyColumnTest(
     private val reverseLayout: Boolean,
 ) : SnapperFlingBehaviorTest(snapIndexDelta) {
 
-    override val endContentPadding: Int
-        get() = with(rule.density) { contentPadding.calculateBottomPadding().roundToPx() }
-
     override fun SemanticsNodeInteraction.swipeAcrossCenter(
         distancePercentage: Float,
         velocityPerSec: Dp,

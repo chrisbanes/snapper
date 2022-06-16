@@ -46,8 +46,6 @@ abstract class SnapperFlingBehaviorTest(
     @get:Rule
     val rule = createComposeRule()
 
-    abstract val endContentPadding: Int
-
     /**
      * This is a workaround for https://issuetracker.google.com/issues/179492185.
      * Ideally we would have a way to get the applier scope from the rule
@@ -371,7 +369,6 @@ abstract class SnapperFlingBehaviorTest(
     ): SnapperFlingBehavior = SnapperFlingBehavior(
         layoutInfo = LazyListSnapperLayoutInfo(
             lazyListState = lazyListState,
-            endContentPadding = endContentPadding,
             snapOffsetForItem = SnapOffsets.Start,
         ),
         decayAnimationSpec = exponentialDecay(),

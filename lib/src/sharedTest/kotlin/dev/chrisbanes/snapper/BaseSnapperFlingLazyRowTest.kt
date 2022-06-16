@@ -20,7 +20,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
@@ -53,11 +52,6 @@ abstract class BaseSnapperFlingLazyRowTest(
     private val layoutDirection: LayoutDirection,
     private val reverseLayout: Boolean,
 ) : SnapperFlingBehaviorTest(snapIndexDelta) {
-
-    override val endContentPadding: Int
-        get() = with(rule.density) {
-            contentPadding.calculateEndPadding(layoutDirection).roundToPx()
-        }
 
     /**
      * Returns the expected resolved layout direction for pages
