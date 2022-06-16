@@ -24,6 +24,7 @@ import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -206,8 +207,9 @@ public class LazyListSnapperLayoutInfo(
     override val totalItemsCount: Int
         get() = lazyListState.layoutInfo.totalItemsCount
 
-    override val currentItem: SnapperLayoutItemInfo?
-        get() = visibleItems.lastOrNull { it.offset <= snapOffsetForItem(this, it) }
+    override val currentItem: SnapperLayoutItemInfo? by derivedStateOf {
+        visibleItems.lastOrNull { it.offset <= snapOffsetForItem(this, it) }
+    }
 
     override val visibleItems: Sequence<SnapperLayoutItemInfo>
         get() = lazyListState.layoutInfo.visibleItemsInfo.asSequence()
