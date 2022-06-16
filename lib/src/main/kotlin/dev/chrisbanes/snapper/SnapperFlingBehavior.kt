@@ -650,10 +650,10 @@ public class SnapperFlingBehavior private constructor(
         targetIndex: Int,
     ): Int = when {
         // forwards
-        initialVelocity > 0 && currentItem.index == targetIndex -> {
+        initialVelocity > 0 && currentItem.index >= targetIndex -> {
             layoutInfo.distanceToIndexSnap(currentItem.index)
         }
-        initialVelocity < 0 && currentItem.index == targetIndex - 1 -> {
+        initialVelocity < 0 && currentItem.index <= targetIndex - 1 -> {
             layoutInfo.distanceToIndexSnap(currentItem.index + 1)
         }
         else -> 0
