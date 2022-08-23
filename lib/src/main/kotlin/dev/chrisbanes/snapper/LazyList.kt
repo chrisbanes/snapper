@@ -70,15 +70,7 @@ public fun rememberSnapperFlingBehavior(
 
 @Deprecated(
     "endContentPadding is no longer necessary to be passed in",
-    ReplaceWith(
-        """rememberSnapperFlingBehavior(
-            lazyListState,
-            snapOffsetForItem,
-            decayAnimationSpec,
-            springAnimationSpec,
-            snapIndex,
-        )"""
-    )
+    ReplaceWith("rememberSnapperFlingBehavior(lazyListState, snapOffsetForItem, decayAnimationSpec, springAnimationSpec, snapIndex)")
 )
 @ExperimentalSnapperApi
 @Composable
