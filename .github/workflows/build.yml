@@ -85,24 +85,10 @@ jobs:
           gradle-dependencies-cache-key: |
             gradle/libs.versions.toml
 
-      # Determine what emulator image to use. We run all API 29+ emulators using
-      # the google_apis image
-      - name: Determine emulator target
-        id: determine-target
-        env:
-          API_LEVEL: ${{ matrix.api-level }}
-        run: |
-          TARGET="default"
-          if [ "$API_LEVEL" -ge "29" ]; then
-            TARGET="google_apis"
-          fi
-          echo "::set-output name=TARGET::$TARGET"
-
       - name: Run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          target: ${{ steps.determine-target.outputs.TARGET }}
           profile: Galaxy Nexus
           script: ./gradlew connectedCheck
 
@@ -110,14 +96,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: logs-${{ matrix.api-level }}-${{ steps.determine-target.outputs.TARGET }}
+          name: logs-${{ matrix.api-level }}
           path: logcat.txt
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-${{ matrix.api-level }}-${{ steps.determine-target.outputs.TARGET }}
+          name: test-results-${{ matrix.api-level }}
           path: |
             **/build/reports/*
             **/build/outputs/*/connected/*
