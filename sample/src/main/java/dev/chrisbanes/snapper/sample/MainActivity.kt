@@ -18,11 +18,13 @@ package dev.chrisbanes.snapper.sample
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
@@ -76,12 +78,18 @@ private fun Samples(appTitle: String) {
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
-
             modifier = Modifier.fillMaxSize()
-        ) {
-            Crossfade(currentSample) { s ->
-                if (s != null) {
-                    s.content()
+        ) { contentPadding ->
+            BackHandler(enabled = currentSample != null) {
+                currentSample = null
+            }
+
+            Crossfade(
+                targetState = currentSample,
+                modifier = Modifier.padding(contentPadding)
+            ) { sample ->
+                if (sample != null) {
+                    sample.content()
                 } else {
                     LazyColumn(Modifier.fillMaxSize()) {
                         items(Samples) { sample ->

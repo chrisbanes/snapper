@@ -29,8 +29,6 @@ buildscript {
         classpath libs.gradleMavenPublishPlugin
 
         classpath libs.dokka
-
-        classpath libs.metalavaGradle
     }
 }
 
@@ -81,7 +79,7 @@ subprojects {
             // Set JVM target to 1.8
             jvmTarget = JavaVersion.VERSION_11
             // Allow use of @OptIn
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
             // Enable default methods in interfaces
             freeCompilerArgs += "-Xjvm-default=all"
             // Enable explicit API mode for library compiles
@@ -95,16 +93,6 @@ subprojects {
     tasks.withType(Test) {
         // Enable logging from Robolectric tests
         systemProperty "robolectric.logging", "stdout"
-    }
-
-    // If we have a POM Artifact ID, we should generate API files
-    if (project.hasProperty('POM_ARTIFACT_ID')) {
-        apply plugin: 'me.tylerbwong.gradle.metalava'
-
-        metalava {
-            filename = "api/current.api"
-            reportLintsAsErrors = true
-        }
     }
 
     // Must be afterEvaluate or else com.vanniktech.maven.publish will overwrite our
