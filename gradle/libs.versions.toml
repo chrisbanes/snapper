@@ -14,6 +14,9 @@ coroutines = "1.5.2"
 androidxtest = "1.4.0"
 androidxnavigation = "2.5.1"
 
+[plugins]
+metalavaGradle = { id = "me.tylerbwong.gradle.metalava", version = "0.2.3" }
+
 [libraries]
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-util = { module = "androidx.compose.ui:ui-util", version.ref = "compose" }
@@ -28,7 +31,6 @@ compose-animation-animation = { module = "androidx.compose.animation:animation",
 
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 gradleMavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.18.0"
-metalavaGradle = "me.tylerbwong.gradle:metalava-gradle:0.2.3"
 
 coil = "io.coil-kt:coil-compose:1.4.0"
 

@@ -41,7 +41,7 @@ jobs:
           arguments: |
             spotlessCheck
             assemble
-            metalavaCheckCompatibility
+            metalavaCheckCompatibilityRelease
             testDebug
             lintDebug
 

@@ -18,10 +18,17 @@ plugins {
     id 'com.android.library'
     id 'kotlin-android'
     id 'org.jetbrains.dokka'
+    alias(libs.plugins.metalavaGradle)
 }
 
 kotlin {
     explicitApi()
+}
+
+metalava {
+    filename = "api/current.api"
+    reportLintsAsErrors = true
+    sourcePaths = ["src/main"]
 }
 
 android {

@@ -29,8 +29,6 @@ buildscript {
         classpath libs.gradleMavenPublishPlugin
 
         classpath libs.dokka
-
-        classpath libs.metalavaGradle
     }
 }
 
@@ -95,16 +93,6 @@ subprojects {
     tasks.withType(Test) {
         // Enable logging from Robolectric tests
         systemProperty "robolectric.logging", "stdout"
-    }
-
-    // If we have a POM Artifact ID, we should generate API files
-    if (project.hasProperty('POM_ARTIFACT_ID')) {
-        apply plugin: 'me.tylerbwong.gradle.metalava'
-
-        metalava {
-            filename = "api/current.api"
-            reportLintsAsErrors = true
-        }
     }
 
     // Must be afterEvaluate or else com.vanniktech.maven.publish will overwrite our
