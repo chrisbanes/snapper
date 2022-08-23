@@ -7,7 +7,7 @@ composesnapshot = "-" # a single character = no snapshot
 
 agp = "7.2.2"
 
-ktlint = "0.47.0"
+ktlint = "0.45.2"
 kotlin = "1.6.21"
 coroutines = "1.5.2"
 
