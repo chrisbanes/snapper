@@ -1,15 +1,18 @@
 [versions]
-compose = "1.2.0-rc01"
+compose = "1.2.1"
+# Last version to support Kotlin 1.6.21
+# https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+composecompiler = "1.2.0-rc02"
 composesnapshot = "-" # a single character = no snapshot
 
-agp = "7.2.1"
+agp = "7.2.2"
 
-ktlint = "0.45.2"
+ktlint = "0.47.0"
 kotlin = "1.6.21"
 coroutines = "1.5.2"
 
 androidxtest = "1.4.0"
-androidxnavigation = "2.4.2"
+androidxnavigation = "2.5.1"
 
 [libraries]
 compose-ui-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
@@ -25,7 +28,7 @@ compose-animation-animation = { module = "androidx.compose.animation:animation",
 
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
 gradleMavenPublishPlugin = "com.vanniktech:gradle-maven-publish-plugin:0.18.0"
-metalavaGradle = "me.tylerbwong.gradle:metalava-gradle:0.1.9"
+metalavaGradle = "me.tylerbwong.gradle:metalava-gradle:0.2.3"
 
 coil = "io.coil-kt:coil-compose:1.4.0"
 
@@ -35,10 +38,10 @@ kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", ve
 kotlin-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-dokka = "org.jetbrains.dokka:dokka-gradle-plugin:1.5.0"
+dokka = "org.jetbrains.dokka:dokka-gradle-plugin:1.7.10"
 
-androidx-core = "androidx.core:core-ktx:1.7.0"
-androidx-activity-compose = "androidx.activity:activity-compose:1.5.0-rc01"
+androidx-core = "androidx.core:core-ktx:1.8.0"
+androidx-activity-compose = "androidx.activity:activity-compose:1.5.1"
 
 androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxtest" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxtest" }
