@@ -21,6 +21,7 @@ plugins {
 
 android {
     compileSdkVersion 33
+    namespace "dev.chrisbanes.snapper.internal.test"
 
     defaultConfig {
         minSdkVersion 21

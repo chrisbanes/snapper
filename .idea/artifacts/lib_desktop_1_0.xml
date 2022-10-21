@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="lib-desktop-1.0">
+    <output-path>$PROJECT_DIR$/kmp/lib/build/libs</output-path>
+    <root id="archive" name="lib-desktop-1.0.jar">
+      <element id="module-output" name="snapper.kmp.lib.desktopMain" />
+    </root>
+  </artifact>
+</component>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Chris Banes
+ * Copyright 2022 Chris Banes
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.gradle.enterprise' version '3.5'
-}
+package dev.chrisbanes.snapper
 
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        publishAlways()
+import android.util.Log
+
+internal actual object SnapperLog {
+    actual inline fun d(tag: String, message: () -> String) {
+        if (DebugLog) {
+            Log.d(tag, message())
+        }
     }
 }
 
-include ':lib'
-include ':internal-testutils'
-include ':sample'
-
-
-include ":kmp:lib"
-include ":kmp:android"
+internal actual fun Double.formatToString(): String = "%.3f".format(this)

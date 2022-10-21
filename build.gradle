@@ -1,3 +1,4 @@
+import org.gradle.api.attributes.plugin.GradlePluginApiVersion
 import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 
 /*
@@ -18,6 +19,7 @@ import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 
 buildscript {
     repositories {
+        gradlePluginPortal()
         google()
         mavenCentral()
     }
@@ -25,6 +27,7 @@ buildscript {
     dependencies {
         classpath libs.android.gradlePlugin
         classpath libs.kotlin.gradlePlugin
+        classpath libs.atomicfu.gradlePlugin
 
         classpath libs.gradleMavenPublishPlugin
 
@@ -161,7 +164,7 @@ subprojects {
                     def depVersion = dependency.version
                     if (depVersion != null && depVersion.endsWith('SNAPSHOT')) {
                         throw new IllegalArgumentException(
-                            "Using SNAPSHOT dependency with non-SNAPSHOT library version: $dependency"
+                                "Using SNAPSHOT dependency with non-SNAPSHOT library version: $dependency"
                         )
                     }
                 }

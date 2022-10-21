@@ -33,11 +33,10 @@ metalava {
 
 android {
     compileSdkVersion 33
+    namespace "dev.chrisbanes.snapper"
 
     defaultConfig {
         minSdkVersion 21
-        // targetSdkVersion has no effect for libraries. This is only used for the test APK
-        targetSdkVersion 33
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

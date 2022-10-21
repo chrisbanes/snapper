@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Chris Banes
+ * Copyright 2022 Chris Banes
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-plugins {
-    id 'com.gradle.enterprise' version '3.5'
+package dev.chrisbanes.snapper
+
+internal const val DebugLog = false
+
+internal expect object SnapperLog {
+    inline fun d(tag: String = "SnapperFlingBehavior", message: () -> String)
 }
 
-gradleEnterprise {
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        publishAlways()
-    }
-}
-
-include ':lib'
-include ':internal-testutils'
-include ':sample'
-
-
-include ":kmp:lib"
-include ":kmp:android"
+internal expect fun Double.formatToString(): String
+internal fun Float.formatToString(): String = toDouble().formatToString()

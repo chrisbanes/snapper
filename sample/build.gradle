@@ -21,6 +21,7 @@ plugins {
 
 android {
     compileSdk 33
+    namespace "dev.chrisbanes.snapper.sample"
 
     defaultConfig {
         applicationId "dev.chrisbanes.snapper.sample"
