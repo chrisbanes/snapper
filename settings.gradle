@@ -32,4 +32,3 @@ include ':sample'
 
 
 include ":kmp:lib"
-include ":kmp:android"
